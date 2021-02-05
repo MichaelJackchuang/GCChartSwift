@@ -157,7 +157,7 @@ enum GCRadarChartViewAnimationStyle {
 ```Swift
 ``` -->
 
-
+##  Tip
 * 由于在内部重写了awakeFromNib方法，所以可以在xib上直接使用，拖一个空白view，将其class改为你要的图表的类名，在代码里设置属性就可以了。<br>
 * 重写了layoutSubviews方法，frame的获取都是在布局完成之后的。<br>
 * <font color=#ff0000 size=5>重要！！！约束布局使用了SnapKit，请提前在项目中集成，若不想集成则手动添加约束，或者获取屏幕宽度来进行相关计算，设置固定视图大小。</font><br>

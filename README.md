@@ -1,7 +1,6 @@
 # iOS-UI之简易图表 for Swift<br>
 这是与OC版本图表相对应的Swift版本图表控件，和OC版本的图标相比，做了一些改进，比如去掉了图例、饼图增加了不同半径的扇形显示、加上了负轴柱状图和其他一些优化，并且可以直接在xib上使用<br>
 1. 饼图(扇形图)<br>
-<img scr="./img/pie_1.png" width="50%" height=50% />
 ![](img/pie_1.png) ![](img/pie_2.png)
 ![](img/pie_3.png) ![](img/pie_4.png)
 ![](img/pie_5.png) ![](img/pie_6.png)

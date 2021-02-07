@@ -51,7 +51,6 @@
 		3D7BB77625CF7A410087F903 /* ConstraintLayoutSupportDSL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7BB75025CF7A410087F903 /* ConstraintLayoutSupportDSL.swift */; };
 		3D7BB77725CF7A410087F903 /* ConstraintMakerRelatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7BB75125CF7A410087F903 /* ConstraintMakerRelatable.swift */; };
 		3D7BB77825CF7A410087F903 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 3D7BB75225CF7A410087F903 /* README.md */; };
-		3D7BB77E25CF7B7B0087F903 /* BaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7BB77D25CF7B7B0087F903 /* BaseViewController.swift */; };
 		3D7BB79725CF7BD40087F903 /* ColumnChartFullScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7BB78125CF7BD40087F903 /* ColumnChartFullScreenViewController.swift */; };
 		3D7BB79825CF7BD40087F903 /* ColumnChartViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7BB78225CF7BD40087F903 /* ColumnChartViewController.swift */; };
 		3D7BB79925CF7BD40087F903 /* CircleRingChartViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7BB78325CF7BD40087F903 /* CircleRingChartViewController.swift */; };
@@ -71,6 +70,7 @@
 		3D7BB7A725CF7BD40087F903 /* GCRadarChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7BB79525CF7BD40087F903 /* GCRadarChartView.swift */; };
 		3D7BB7A825CF7BD40087F903 /* LineViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7BB79625CF7BD40087F903 /* LineViewController.swift */; };
 		3D7BB7AC25CF7F000087F903 /* UIViewController+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7BB7AB25CF7F000087F903 /* UIViewController+Extension.swift */; };
+		3D7BB7B525CF895E0087F903 /* BaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7BB7B425CF895E0087F903 /* BaseViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -120,7 +120,6 @@
 		3D7BB75025CF7A410087F903 /* ConstraintLayoutSupportDSL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConstraintLayoutSupportDSL.swift; sourceTree = "<group>"; };
 		3D7BB75125CF7A410087F903 /* ConstraintMakerRelatable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConstraintMakerRelatable.swift; sourceTree = "<group>"; };
 		3D7BB75225CF7A410087F903 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		3D7BB77D25CF7B7B0087F903 /* BaseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseViewController.swift; sourceTree = SOURCE_ROOT; };
 		3D7BB78125CF7BD40087F903 /* ColumnChartFullScreenViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColumnChartFullScreenViewController.swift; sourceTree = "<group>"; };
 		3D7BB78225CF7BD40087F903 /* ColumnChartViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColumnChartViewController.swift; sourceTree = "<group>"; };
 		3D7BB78325CF7BD40087F903 /* CircleRingChartViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CircleRingChartViewController.swift; sourceTree = "<group>"; };
@@ -140,6 +139,7 @@
 		3D7BB79525CF7BD40087F903 /* GCRadarChartView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GCRadarChartView.swift; sourceTree = "<group>"; };
 		3D7BB79625CF7BD40087F903 /* LineViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LineViewController.swift; sourceTree = "<group>"; };
 		3D7BB7AB25CF7F000087F903 /* UIViewController+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIViewController+Extension.swift"; sourceTree = "<group>"; };
+		3D7BB7B425CF895E0087F903 /* BaseViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -204,7 +204,7 @@
 		3D7BB72425CF797C0087F903 /* Interface */ = {
 			isa = PBXGroup;
 			children = (
-				3D7BB77C25CF7B4C0087F903 /* General */,
+				3D7BB7B325CF89420087F903 /* General */,
 				3D7BB77A25CF7B3F0087F903 /* Chart */,
 			);
 			path = Interface;
@@ -312,14 +312,6 @@
 			path = Chart;
 			sourceTree = "<group>";
 		};
-		3D7BB77C25CF7B4C0087F903 /* General */ = {
-			isa = PBXGroup;
-			children = (
-				3D7BB77D25CF7B7B0087F903 /* BaseViewController.swift */,
-			);
-			path = General;
-			sourceTree = "<group>";
-		};
 		3D7BB78525CF7BD40087F903 /* ColumnChartView */ = {
 			isa = PBXGroup;
 			children = (
@@ -351,6 +343,14 @@
 				3D7BB79525CF7BD40087F903 /* GCRadarChartView.swift */,
 			);
 			path = RadarChartView;
+			sourceTree = "<group>";
+		};
+		3D7BB7B325CF89420087F903 /* General */ = {
+			isa = PBXGroup;
+			children = (
+				3D7BB7B425CF895E0087F903 /* BaseViewController.swift */,
+			);
+			path = General;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -437,7 +437,6 @@
 				3D7BB76B25CF7A410087F903 /* ConstraintMaker.swift in Sources */,
 				3D7BB75425CF7A410087F903 /* ConstraintMultiplierTarget.swift in Sources */,
 				3D7BB77125CF7A410087F903 /* Debugging.swift in Sources */,
-				3D7BB77E25CF7B7B0087F903 /* BaseViewController.swift in Sources */,
 				3D7BB7A525CF7BD40087F903 /* GCPieChartView.swift in Sources */,
 				3D7BB79D25CF7BD40087F903 /* PieChartViewController.swift in Sources */,
 				3D7BB7A725CF7BD40087F903 /* GCRadarChartView.swift in Sources */,
@@ -447,6 +446,7 @@
 				3D7BB7A225CF7BD40087F903 /* LineChartView.swift in Sources */,
 				3D7BB76E25CF7A410087F903 /* ConstraintView+Extensions.swift in Sources */,
 				3D7BB75E25CF7A410087F903 /* ConstraintMakerExtendable.swift in Sources */,
+				3D7BB7B525CF895E0087F903 /* BaseViewController.swift in Sources */,
 				3D7BB76F25CF7A410087F903 /* ConstraintItem.swift in Sources */,
 				3D7BB76925CF7A410087F903 /* ConstraintOffsetTarget.swift in Sources */,
 				3D7BB77725CF7A410087F903 /* ConstraintMakerRelatable.swift in Sources */,

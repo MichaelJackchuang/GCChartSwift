@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="17701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17703"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="CircleRingChartViewController" customModule="DemosInSwift" customModuleProvider="target">
+            <connections>
+                <outlet property="ring1" destination="Bod-hD-rpO" id="MmS-oO-H40"/>
+                <outlet property="ring2" destination="I4U-Dl-sNn" id="WUl-By-RTf"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="SxI-Ma-14r">
+                    <rect key="frame" x="0.0" y="44" width="414" height="852"/>
+                    <subviews>
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Bod-hD-rpO" customClass="GCCircleRingChartView" customModule="DemosInSwift" customModuleProvider="target">
+                            <rect key="frame" x="0.0" y="16" width="414" height="414"/>
+                            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <constraints>
+                                <constraint firstAttribute="width" secondItem="Bod-hD-rpO" secondAttribute="height" multiplier="1:1" id="1JU-sZ-Tmh"/>
+                            </constraints>
+                        </view>
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="I4U-Dl-sNn" customClass="GCCircleRingChartView" customModule="DemosInSwift" customModuleProvider="target">
+                            <rect key="frame" x="20" y="450" width="374" height="250"/>
+                            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="250" id="iDK-CG-i5o"/>
+                            </constraints>
+                        </view>
+                    </subviews>
+                    <constraints>
+                        <constraint firstItem="I4U-Dl-sNn" firstAttribute="leading" secondItem="SxI-Ma-14r" secondAttribute="leading" constant="20" id="0Y9-Q0-XY6"/>
+                        <constraint firstAttribute="trailing" secondItem="I4U-Dl-sNn" secondAttribute="trailing" constant="20" id="3KS-pn-gtX"/>
+                        <constraint firstItem="Bod-hD-rpO" firstAttribute="top" secondItem="SxI-Ma-14r" secondAttribute="top" constant="16" id="AsO-xn-xoY"/>
+                        <constraint firstItem="I4U-Dl-sNn" firstAttribute="top" secondItem="Bod-hD-rpO" secondAttribute="bottom" constant="20" id="BDo-av-cgl"/>
+                        <constraint firstItem="Bod-hD-rpO" firstAttribute="centerX" secondItem="SxI-Ma-14r" secondAttribute="centerX" id="Gel-4u-z1j"/>
+                        <constraint firstAttribute="bottom" secondItem="I4U-Dl-sNn" secondAttribute="bottom" constant="40" id="V7c-8H-zkS"/>
+                        <constraint firstAttribute="trailing" secondItem="Bod-hD-rpO" secondAttribute="trailing" id="eyu-gy-NMv"/>
+                        <constraint firstItem="Bod-hD-rpO" firstAttribute="leading" secondItem="SxI-Ma-14r" secondAttribute="leading" id="uGd-Ak-mj3"/>
+                    </constraints>
+                </scrollView>
+            </subviews>
+            <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
+            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+            <constraints>
+                <constraint firstItem="SxI-Ma-14r" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" id="8Ci-Cq-wzp"/>
+                <constraint firstAttribute="bottom" secondItem="SxI-Ma-14r" secondAttribute="bottom" id="BON-jc-kkJ"/>
+                <constraint firstItem="SxI-Ma-14r" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="abd-MC-uzL"/>
+                <constraint firstItem="SxI-Ma-14r" firstAttribute="trailing" secondItem="fnl-2z-Ty3" secondAttribute="trailing" id="oGh-ga-ecm"/>
+            </constraints>
+            <point key="canvasLocation" x="131.8840579710145" y="107.8125"/>
+        </view>
+    </objects>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>

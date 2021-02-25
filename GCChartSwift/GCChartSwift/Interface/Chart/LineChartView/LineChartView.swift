@@ -15,17 +15,17 @@ class LineChartView: UIView {
     /// 数据标签数组（x轴分组标题）
     var dataNameArray = [String]()
     
-    /// 数据数组，当不是单条折线时为二维数组，其中每个元素数组为一条折线的数据
-    var dataArray = [String]()
+    /// 单线条数据数组
+    var singleDataArray = [String]()
     
-    /// y轴最大值，不设置这个值则自动查找数组中最大值
-    var maxNumber = ""
+    /// 多线条数据数组（二维数组）(每个元素表示一条线)
+    var multiDataArray = [[String]]()
     
-    /// y轴刻度值，设置此数组则不自动计算y轴刻度值
+    /// y轴刻度值，递增，设置此数组则不自动计算y轴刻度值，传入刻度时必须包含0
     var yAxisNums = [String]()
     
     /// 是否显示数据水平线
-    var showDataHorizontalLine = false
+    var showDataHorizontalLine:Bool = false
     
     /// 是否可以滚动 一般来说可以不用设置这个属性 当数据超过5组时可以滚动
     var scrollEnabled = true
@@ -41,9 +41,6 @@ class LineChartView: UIView {
     
     /// 是否为平滑曲线
     var isSmooth = false
-    
-    /// 是否为密集数据
-    var isDense = false
     
     /// 是否为单条线
     var isSingleLine = true
@@ -69,44 +66,33 @@ class LineChartView: UIView {
     /// 点击事件回调（字典中传递数据，索引等信息）
     var tapBlock:(([String : Any]) -> Void)?
     
-    // MARK: - private member property
-    private lazy var scrollView:UIScrollView = {
-        let scrollView = UIScrollView()
-        scrollView.backgroundColor = .white
-        scrollView.showsVerticalScrollIndicator = false
-        scrollView.showsHorizontalScrollIndicator = false
-        return scrollView
-    }()
     
-    private lazy var yAxisView:UIView = { // y轴view
-        let view = UIView()
-        view.backgroundColor = .white
-        return view
-    }()
     
-    private lazy var xAxisView:UIView = { // x轴view
-        let view = UIView()
-        view.backgroundColor = .white
-        return view
-    }()
-    
-    private lazy var dataView:UIView = { // 数据view
-        let view = UIView()
-        view.backgroundColor = .white
-        return view
-    }()
-    
-    var yAxisViewWidth:CGFloat = 20 // y轴view宽度
-    var yAxisViewTopMargin:CGFloat = 20 // y轴顶部预留高度
-    var yAxisTitleFont:CGFloat = 8 // y轴刻度字体大小
-    var xAxisViewHeight:CGFloat = 20 // x轴view高度
-    var groupWidth:CGFloat = 0
-    var pointArray = [CGPoint]() // 平滑曲线用的点坐标数组
-    var xAxisTitleFont:CGFloat = 8 // x轴标题字体大小
-    var dataLabelFont:CGFloat = 8 // 具体数据文字大小
-    var dataNumberArray = [Float]() // 数据数组
+    // MARK: private property
+    private var bgWidth:CGFloat = 0
+    private var bgHeight:CGFloat = 0
+    private var yAxisHeight:CGFloat = 0
+    private var yAxisWidth:CGFloat = 20 // y轴view宽度
+    private var yAxisTopMagin:CGFloat = 20 // y轴顶部预留高度
+    private var yAxisTitleFont:CGFloat = 8 // y轴刻度字体大小
+    private var xAxisHeight:CGFloat = 20 // x轴view高度
+    private var xAxisWidth:CGFloat = 0
+    private var groupWidth:CGFloat = 0 // 每组数据背景宽度
+    private var pointArray = [CGPoint]() // 平滑曲线用的点坐标数组
+    private var xAxisTitleFont:CGFloat = 8 // x轴标题字体大小
+    private var dataLabelFont:CGFloat = 8 // 具体数据文字大小
+    private var singleDataNumberArray = [Float]() // 单线数据数组
+    private var multiDataNumberArray = [[Float]]() // 多线数据数组
 
     // MARK: - init
+    init(frame: CGRect, nameArray:[String], dataArray:[String]) {
+        super.init(frame: frame)
+        
+        dataNameArray = nameArray
+        singleDataArray = dataArray
+        config()
+    }
+    
     /// 初始化一个折线图表
     /// - Parameter frame: frame
     override init(frame: CGRect) {
@@ -120,154 +106,367 @@ class LineChartView: UIView {
         super.init(coder: coder)
     }
     
-    // MARK: - config
-    private func config() {
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        
+        config()
+    }
+    
+    // MARK: - UI property
+    let scrollView:UIScrollView = {
+        let scrollView = UIScrollView()
+        scrollView.backgroundColor = .white
+        scrollView.showsVerticalScrollIndicator = false
+        scrollView.showsHorizontalScrollIndicator = false
+        return scrollView
+    }()
+    
+    // y轴view
+    let yAxisView:UIView = {
+        let view = UIView()
+        view.backgroundColor = .white
+        return view
+    }()
+    
+    // x轴view
+    let xAxisView:UIView = {
+        let view = UIView()
+        view.backgroundColor = .white
+        return view
+    }()
+    
+    let dataView:UIView = { // 数据view
+        let view = UIView()
+        view.backgroundColor = .white
+        return view
+    }()
+    
+    // MARK: - resetData
+    func resetData() {
+        if isSingleLine {
+            resetSingleLine()
+        } else {
+            resetMultiLine()
+        }
+    }
+}
+
+// MARK: - config
+extension LineChartView {
+    func config() {
         lineWidth = 2
         if lineColor.isEmpty {
-            lineColor.append("404040")
+//            lineColor.append("404040")
+            lineColor = ["308ff7","fbca58","f5447d","a020f0","00ffff","00ff00"]
         }
         if fillAlpha == 0 {
             fillAlpha = 1.0
         }
         
+        setUI()
+    }
+    
+    func setUI() {
+        addSubview(yAxisView)
+//        scrollView.addSubview(xAxisView)
+        addSubview(yAxisView)
+        yAxisView.snp.makeConstraints { (make) in
+            make.top.equalTo(yAxisTopMagin) // yAxisTopMagin
+            make.left.bottom.equalTo(0)
+            make.width.equalTo(30)
+        }
+        
         // scrollView
         scrollView.delegate = self
         addSubview(scrollView)
+        scrollView.snp.makeConstraints { (make) in
+            make.left.equalTo(yAxisView.snp.right)
+            make.top.bottom.right.equalTo(0)
+        }
+        scrollView.isScrollEnabled = scrollEnabled
         
-        addSubview(yAxisView)
         scrollView.addSubview(xAxisView)
         
+        layoutIfNeeded()
     }
     
-    // MARK: - resetLine
-    private func resetSingleLine() {
-        dataNumberArray.removeAll()
-        for num in dataArray {
-            dataNumberArray.append(Float(num) ?? 0.0)
-        }
+    override func layoutSubviews() {
+        super.layoutSubviews()
         
-        yAxisView.frame = CGRect(x: 0, y: yAxisViewTopMargin, width: yAxisViewWidth, height: bounds.size.height - yAxisViewTopMargin)
-        scrollView.frame = CGRect(x: yAxisViewWidth, y: 0, width: bounds.size.width - yAxisViewWidth, height: bounds.size.height)
-        yAxisView.subviews.forEach { (subview) in
+        bgWidth = scrollView.bounds.size.width
+        bgHeight = scrollView.bounds.size.height - yAxisTopMagin
+        
+        yAxisWidth = yAxisView.bounds.size.width
+        yAxisHeight = yAxisView.bounds.size.height
+    }
+}
+
+// MARK: - resetLine
+extension LineChartView {
+    // 单线
+    private func resetSingleLine() {
+        // y轴设置
+        for subview in yAxisView.subviews {
             subview.removeFromSuperview()
         }
-        let lineView = UIView(frame: CGRect(x: yAxisViewWidth - 1, y: 0, width: 1, height: yAxisView.bounds.size.height - xAxisViewHeight))
+        let lineView = UIView(frame: CGRect(x: yAxisWidth - 1, y: 0, width: 1, height: yAxisHeight - xAxisHeight))
         lineView.backgroundColor = UIColor.colorWithHexString(color: "898989")
         yAxisView.addSubview(lineView)
         
-        var maxValue:Float = 0
-        var maxNum:Float = 0
+        singleDataNumberArray.removeAll()
+        for num in singleDataArray {
+            singleDataNumberArray.append(Float(num) ?? 0.0)
+        }
+        
+        var maxValue:Float = 0 // 数组最大值
+        var minValue:Float = 0 // 数组最小值
+        var maxNum:Float = 0 // y刻度最大值
+        var minNum:Float = 0 // y刻度最小值
         var str = ""
+        var level:Int = 1
+        var temp = 0
+        var zeroY:CGFloat = 0 // 用于传入刻度值时，记录0的高度
+        
+        maxValue = singleDataNumberArray.max() ?? 0 // 寻找数组中最大值
+        minValue = singleDataNumberArray.min() ?? 0 // 寻找数组中最小值
+        
         if yAxisNums.isEmpty { // 未传入刻度值，则自动计算
-            maxValue = Float(dataNumberArray.max()!) // 寻找数组中最大值
-            if self.maxNumber.isEmpty { // 未传入刻度最大值，则自动计算
-                maxNum = approximateRoundNumber(String(format: "%f", maxValue))
-            } else {
-                maxNum = Float(self.maxNumber) ?? 1
+            if minValue >= 0 { // 最小值大于0，则无负轴
+                maxNum = approximateRoundNumber("\(maxValue)")
+                minNum = 0
+                str = String(String(format: "%f", maxNum).prefix(1)) // 获取最大刻度字符的第一位
+                str = str == "0" ? "1" : str
+                level = (Int(maxNum) ) / Int(str)! // 数量级 整十或整百或整千等
+            } else if maxValue <= 0 { // 最大值小于0，则无正轴
+                maxNum = 0
+                minNum = -approximateRoundNumber("\(-minValue)")
+                str = String(String(format: "%f", -minNum).prefix(1)) // 获取最大刻度字符的第一位
+                str = str == "0" ? "1" : str
+                level = (Int(minNum) ) / Int(str)! // 数量级 整十或整百或整千等
+            } else { // 最大值大于0，最小值小于0，则正负轴都有
+                maxNum = approximateRoundNumber("\(maxValue)")
+                minNum = -approximateRoundNumber("\(-minValue)")
+                let absMax = [maxNum, -minNum].max() ?? 0
+                maxNum = absMax
+                minNum = -absMax
+                str = String(String(format: "%f", absMax).prefix(1)) // 获取最大刻度字符的第一位
+                str = str == "0" ? "1" : str
+                level = (Int(absMax) ) / Int(str)! // 数量级 整十或整百或整千等
             }
             
-            str = String(String(format: "%f", maxNum).prefix(1))
-            let level = (Int(maxNum) ) / (Int(str) ?? 1) // 数量级 整十或整百或整千等
-            for i in 0..<(Int(str) ?? 0) { // y轴刻度
-                let labelHeight:CGFloat = 16
-                let labelY = CGFloat(i) * (lineView.bounds.size.height / CGFloat(Int(str)!))
-                let lblY = yAxisView.bounds.size.height - xAxisViewHeight - labelHeight / 2 - labelY
-                let lblYAxisNum = UILabel(frame: CGRect(x: 0, y: lblY, width: yAxisViewWidth - 1, height: labelHeight))
-                lblYAxisNum.font = UIFont.systemFont(ofSize: yAxisTitleFont)
-                lblYAxisNum.textColor = UIColor.colorWithHexString(color: "898989")
-                lblYAxisNum.textAlignment = .center
-                lblYAxisNum.text = String(format: "%d", i * level)
-                yAxisView.addSubview(lblYAxisNum)
+            if minValue >= 0 { // 最小值大于0，则无负轴
+                for i in 0..<Int(str)! {
+                    let lblY = yAxisHeight - xAxisHeight - 8 - CGFloat(i) * lineView.bounds.size.height / CGFloat(Int(str)!)
+                    let lblYAxisNum = UILabel(frame: CGRect(x: 0, y: lblY, width: yAxisWidth - 1, height: 16))
+                    lblYAxisNum.font = UIFont.systemFont(ofSize: 8)
+                    lblYAxisNum.textColor = UIColor.colorWithHexString(color: "898989")
+                    lblYAxisNum.textAlignment = .center
+                    lblYAxisNum.text = "\(i * level)"
+                    yAxisView.addSubview(lblYAxisNum)
+                }
+                if !singleDataArray.isEmpty {
+                    let lblMax = UILabel(frame: CGRect(x: 0, y: -8, width: yAxisWidth - 1, height: 16))
+                    lblMax.font = UIFont.systemFont(ofSize: 8)
+                    lblMax.textColor = UIColor.colorWithHexString(color: "898989")
+                    lblMax.textAlignment = .center
+                    lblMax.text = String(format: "%.f", maxNum)
+                    yAxisView.addSubview(lblMax)
+                }
+            } else if maxValue <= 0 { // 最大值小于0，则无正轴
+                for i in 0 ..< Int(str)! {
+                    let lblY = -8 + CGFloat(i) * lineView.bounds.size.height / CGFloat(Int(str)!)
+                    let lblYAxisNum = UILabel(frame: CGRect(x: 0, y: lblY, width: yAxisWidth - 1, height: 16))
+                    lblYAxisNum.font = UIFont.systemFont(ofSize: 8)
+                    lblYAxisNum.textColor = UIColor.colorWithHexString(color: "898989")
+                    lblYAxisNum.textAlignment = .center
+                    lblYAxisNum.text = "\(i * level)"
+                    yAxisView.addSubview(lblYAxisNum)
+                }
+                if !singleDataArray.isEmpty {
+                    let lblMin = UILabel(frame: CGRect(x: 0, y: lineView.bounds.size.height - 8, width: yAxisWidth - 1, height: 16))
+                    lblMin.font = UIFont.systemFont(ofSize: 8)
+                    lblMin.textColor = UIColor.colorWithHexString(color: "898989")
+                    lblMin.textAlignment = .center
+                    lblMin.text = String(format: "%.f", minNum)
+                    yAxisView.addSubview(lblMin)
+                    
+                }
+            } else {
+                temp = Int(str)!
+                for i in 0 ..< Int(str)! * 2 {
+                    let lblY = yAxisHeight - xAxisHeight - 8 - CGFloat(i) * lineView.bounds.size.height / CGFloat(Int(str)! * 2)
+                    let lblYAxisNum = UILabel(frame: CGRect(x: 0, y: lblY, width: yAxisWidth - 1, height: 16))
+                    lblYAxisNum.font = UIFont.systemFont(ofSize: 8)
+                    lblYAxisNum.textColor = UIColor.colorWithHexString(color: "898989")
+                    lblYAxisNum.textAlignment = .center
+                    lblYAxisNum.text = "\((i - temp) * level)"
+                    yAxisView.addSubview(lblYAxisNum)
+                }
+                if !singleDataArray.isEmpty {
+                    let lblMax = UILabel(frame: CGRect(x: 0, y: -8, width: yAxisWidth - 1, height: 16))
+                    lblMax.font = UIFont.systemFont(ofSize: 8)
+                    lblMax.textColor = UIColor.colorWithHexString(color: "898989")
+                    lblMax.textAlignment = .center
+                    let absMax = [maxNum, -minNum].max() ?? 0
+                    lblMax.text = String(format: "%.f", absMax)
+                    yAxisView.addSubview(lblMax)
+                }
             }
-            if !dataArray.isEmpty || !maxNumber.isEmpty {
-                let labelHeight:CGFloat = 16
-                let lblMax = UILabel(frame: CGRect(x: 0, y: -labelHeight / 2, width: yAxisViewWidth - 1, height: labelHeight))
-                lblMax.font = UIFont.systemFont(ofSize: yAxisTitleFont)
-                lblMax.textColor = UIColor.colorWithHexString(color: "898989")
-                lblMax.textAlignment = .center
-                lblMax.text = String(format: "%.f", maxNum)
-                yAxisView.addSubview(lblMax)
-            }
+            
+//            if minValue >= 0 { // 最小值大于0，则无负轴
+//
+//            } else if maxValue <= 0 { // 最大值小于0，则无正轴
+//
+//            } else {
+//
+//            }
         } else {
-            maxNum = Float(yAxisNums.last!) ?? 1
+            var yAxisNumArray = [Float]()
+            for num in yAxisNums {
+                yAxisNumArray.append(Float(num) ?? 0.0)
+            }
+            maxNum = yAxisNumArray.max() ?? 0 // 寻找数组中最大值
+            minNum = yAxisNumArray.min() ?? 0 // 寻找数组中最小值
+            
+//            maxNum = Float(yAxisNums.last!) ?? 1
             for i in 0..<yAxisNums.count {
                 let labelHeight:CGFloat = 16
-                let lblY = yAxisView.bounds.size.height - xAxisViewHeight - labelHeight / 2 - CGFloat(yAxisNums.count - 1)
-                let lblYAxisNum = UILabel(frame: CGRect(x: 0, y: lblY, width: yAxisViewWidth - 1, height: labelHeight))
+                let labelY = CGFloat(i) * (lineView.bounds.size.height / CGFloat(yAxisNums.count - 1))
+                let lblY = yAxisView.bounds.size.height - xAxisHeight - labelHeight / 2 - labelY
+                let lblYAxisNum = UILabel(frame: CGRect(x: 0, y: lblY, width: yAxisWidth - 1, height: labelHeight))
                 lblYAxisNum.font = UIFont.systemFont(ofSize: yAxisTitleFont)
                 lblYAxisNum.textColor = UIColor.colorWithHexString(color: "898989")
                 lblYAxisNum.textAlignment = .center
                 lblYAxisNum.text = yAxisNums[i]
                 yAxisView.addSubview(lblYAxisNum)
+                if Int(yAxisNums[yAxisNums.count - i - 1]) == 0 {
+                    zeroY = yAxisTopMagin + CGFloat(i) * (lineView.bounds.size.height / CGFloat(yAxisNums.count - 1))
+                }
             }
         }
         
-        groupWidth = scrollView.bounds.size.width / CGFloat(dataArray.count)
-        if isDense {
-            groupWidth = scrollView.bounds.size.width / 10
-        }
-        if dataArray.count <= 5 {
-            scrollView.contentSize = CGSize(width: scrollView.bounds.size.width, height: scrollView.bounds.size.height)
-            xAxisView.frame = CGRect(x: 0, y: scrollView.bounds.size.height - xAxisViewHeight, width: scrollView.bounds.size.width, height: xAxisViewHeight)
+        // 确定滚动内容大小和组宽度
+        if scrollEnabled {
+            if singleDataArray.count <= 5 {
+                groupWidth = bgWidth / CGFloat(singleDataArray.count)
+                scrollView.contentSize = CGSize(width: bgWidth, height: 0)
+                xAxisView.frame = CGRect(x: 0, y: bgHeight, width: bgWidth, height: xAxisHeight)
+            } else {
+                groupWidth = bgWidth / 5
+                scrollView.contentSize = CGSize(width: groupWidth * CGFloat(singleDataArray.count), height: 0)
+                xAxisView.frame = CGRect(x: 0, y: bgHeight, width: groupWidth * CGFloat(singleDataArray.count), height: xAxisHeight)
+            }
         } else {
-            scrollView.contentSize = CGSize(width: groupWidth * CGFloat(dataArray.count), height: scrollView.bounds.size.height)
-            xAxisView.frame = CGRect(x: 0, y: scrollView.bounds.size.height - xAxisViewHeight, width: groupWidth * CGFloat(dataArray.count), height: xAxisViewHeight)
+            groupWidth = bgWidth / CGFloat(singleDataArray.count)
+            scrollView.contentSize = CGSize(width: bgWidth, height: 0)
+            xAxisView.frame = CGRect(x: 0, y: bgHeight, width: bgWidth, height: xAxisHeight)
         }
         
+        xAxisWidth = xAxisView.bounds.size.width
+        
         // x轴
-        for view in xAxisView.subviews { // 先移除再创建
-            view.removeFromSuperview()
+        // 移除xAxisView子视图
+        for subview in xAxisView.subviews {
+            subview.removeFromSuperview()
         }
-        let xLineView = UIView(frame: CGRect(x: 0, y: 0, width: xAxisView.bounds.size.width, height: 1))
+        
+        let xLineView = UIView(frame: CGRect(x: 0, y: 0, width: xAxisWidth, height: 1))
         xLineView.backgroundColor = UIColor.colorWithHexString(color: "898989")
         xAxisView.addSubview(xLineView)
         
-        // scrollView上的
-        for view in scrollView.subviews {
-            if view != xAxisView {
-                view.removeFromSuperview()
+        // 移除scrollView子视图
+        for subview in scrollView.subviews {
+            if subview != xAxisView {
+                subview.removeFromSuperview()
             }
         }
         
         // 水平虚线
         if showDataHorizontalLine {
-            if yAxisNums.isEmpty {
-                for i in 0..<(Int(str) ?? 0) {
-                    let dashH = CGFloat(i + 1) * (yAxisView.bounds.size.height - xAxisViewHeight) / CGFloat(Int(str)!)
-                    let dashY = scrollView.bounds.size.height - xAxisViewHeight - dashH
-                    let dashLineView = UIView(frame: CGRect(x: 0, y: dashY, width: scrollView.contentSize.width, height: 1))
-                    scrollView.addSubview(dashLineView)
-                    let lineLayer = CAShapeLayer()
-                    lineLayer.bounds = dashLineView.bounds
-                    lineLayer.position = CGPoint(x: dashLineView.bounds.size.width / 2, y: dashLineView.bounds.size.height / 2)
-                    lineLayer.lineWidth = 0.5
-                    lineLayer.lineDashPattern = [2,1]
-                    lineLayer.strokeColor = UIColor.colorWithHexString(color: "dcdcdc").cgColor
-                    // 设置路径
-                    let path = CGMutablePath()
-                    path.move(to: CGPoint(x: 0, y: dashLineView.bounds.size.height / 2))
-                    path.addLine(to: CGPoint(x: dashLineView.bounds.size.width, y: dashLineView.bounds.size.height / 2))
-                    lineLayer.path = path
-                    dashLineView.layer.addSublayer(lineLayer)
+            if yAxisNums.isEmpty { // 未传入刻度值
+                if minValue >= 0 { // 最小值大于0，则无负轴
+                    for i in 0 ..< Int(str)! {
+                        let lineY = yAxisTopMagin + CGFloat(i) * (lineView.bounds.size.height / CGFloat(Int(str)!))
+                        let dashLineView = UIView(frame: CGRect(x: 0, y: lineY, width: xAxisWidth, height: 1))
+                        scrollView.addSubview(dashLineView)
+                        let path = UIBezierPath()
+                        path.move(to: CGPoint(x: 0, y: dashLineView.bounds.size.height / 2))
+                        path.addLine(to: CGPoint(x: dashLineView.bounds.size.width, y: dashLineView.bounds.size.height / 2))
+                        let dashLineLayer = CAShapeLayer()
+                        dashLineLayer.bounds = dashLineView.bounds
+                        dashLineLayer.position = CGPoint(x: dashLineView.bounds.size.width / 2, y: dashLineView.bounds.size.height / 2)
+                        dashLineLayer.lineWidth = 0.5
+                        dashLineLayer.lineDashPattern = [2,1]
+                        dashLineLayer.strokeColor = UIColor.colorWithHexString(color: "dcdcdc").cgColor
+                        dashLineLayer.path = path.cgPath
+                        dashLineView.layer.addSublayer(dashLineLayer)
+                    }
+                } else if maxValue <= 0 { // 最大值小于0，则无正轴
+                    for i in 0 ..< Int(str)! {
+                        let lineY = yAxisTopMagin + CGFloat(i) * (lineView.bounds.size.height / CGFloat(Int(str)!))
+                        let dashLineView = UIView(frame: CGRect(x: 0, y: lineY, width: xAxisWidth, height: 1))
+                        scrollView.addSubview(dashLineView)
+                        let path = UIBezierPath()
+                        path.move(to: CGPoint(x: 0, y: dashLineView.bounds.size.height / 2))
+                        path.addLine(to: CGPoint(x: dashLineView.bounds.size.width, y: dashLineView.bounds.size.height / 2))
+                        let dashLineLayer = CAShapeLayer()
+                        dashLineLayer.bounds = dashLineView.bounds
+                        dashLineLayer.position = CGPoint(x: dashLineView.bounds.size.width / 2, y: dashLineView.bounds.size.height / 2)
+                        if i == 0 {
+                            dashLineLayer.lineWidth = 1
+                            dashLineLayer.strokeColor = UIColor.colorWithHexString(color: "898989").cgColor
+                        } else {
+                            dashLineLayer.lineWidth = 0.5
+                            dashLineLayer.lineDashPattern = [2,1]
+                            dashLineLayer.strokeColor = UIColor.colorWithHexString(color: "dcdcdc").cgColor
+                        }
+                        dashLineLayer.path = path.cgPath
+                        dashLineView.layer.addSublayer(dashLineLayer)
+                    }
+                } else {
+                    for i in 0 ..< Int(str)! * 2 {
+                        let lineY = yAxisTopMagin + CGFloat(i) * (lineView.bounds.size.height / CGFloat(Int(str)! * 2))
+                        let dashLineView = UIView(frame: CGRect(x: 0, y: lineY, width: xAxisWidth, height: 1))
+                        scrollView.addSubview(dashLineView)
+                        let path = UIBezierPath()
+                        path.move(to: CGPoint(x: 0, y: dashLineView.bounds.size.height / 2))
+                        path.addLine(to: CGPoint(x: dashLineView.bounds.size.width, y: dashLineView.bounds.size.height / 2))
+                        let dashLineLayer = CAShapeLayer()
+                        dashLineLayer.bounds = dashLineView.bounds
+                        dashLineLayer.position = CGPoint(x: dashLineView.bounds.size.width / 2, y: dashLineView.bounds.size.height / 2)
+                        if i == temp {
+                            dashLineLayer.lineWidth = 1
+                            dashLineLayer.strokeColor = UIColor.colorWithHexString(color: "898989").cgColor
+                        } else {
+                            dashLineLayer.lineWidth = 0.5
+                            dashLineLayer.lineDashPattern = [2,1]
+                            dashLineLayer.strokeColor = UIColor.colorWithHexString(color: "dcdcdc").cgColor
+                        }
+                        dashLineLayer.path = path.cgPath
+                        dashLineView.layer.addSublayer(dashLineLayer)
+                    }
                 }
-            } else {
-                for i in 1..<yAxisNums.count {
-                    let dashH = CGFloat(i) * (yAxisView.bounds.size.height - xAxisViewHeight) / CGFloat(yAxisNums.count - 1)
-                    let dashY = scrollView.bounds.size.height - xAxisViewHeight - dashH
-                    let dashLineView = UIView(frame: CGRect(x: 0, y: dashY, width: scrollView.contentSize.width, height: 1))
+            } else { // 传入刻度值
+                for i in 0..<yAxisNums.count - 1 {
+                    let lineY = yAxisTopMagin + CGFloat(i) * (lineView.bounds.size.height / CGFloat(yAxisNums.count - 1))
+                    let dashLineView = UIView(frame: CGRect(x: 0, y: lineY, width: xAxisWidth, height: 1))
                     scrollView.addSubview(dashLineView)
-                    let lineLayer = CAShapeLayer()
-                    lineLayer.bounds = dashLineView.bounds
-                    lineLayer.position = CGPoint(x: dashLineView.bounds.size.width / 2, y: dashLineView.bounds.size.height / 2)
-                    lineLayer.lineWidth = 0.5
-                    lineLayer.lineDashPattern = [2,1]
-                    lineLayer.strokeColor = UIColor.colorWithHexString(color: "dcdcdc").cgColor
-                    // 设置路径
-                    let path = CGMutablePath()
+                    let path = UIBezierPath()
                     path.move(to: CGPoint(x: 0, y: dashLineView.bounds.size.height / 2))
                     path.addLine(to: CGPoint(x: dashLineView.bounds.size.width, y: dashLineView.bounds.size.height / 2))
-                    lineLayer.path = path
-                    dashLineView.layer.addSublayer(lineLayer)
+                    let dashLineLayer = CAShapeLayer()
+                    dashLineLayer.bounds = dashLineView.bounds
+                    dashLineLayer.position = CGPoint(x: dashLineView.bounds.size.width / 2, y: dashLineView.bounds.size.height / 2)
+                    if Int(yAxisNums[yAxisNums.count - i - 1]) == 0 {
+                        dashLineLayer.lineWidth = 1
+                        dashLineLayer.strokeColor = UIColor.colorWithHexString(color: "898989").cgColor
+                    } else {
+                        dashLineLayer.lineWidth = 0.5
+                        dashLineLayer.lineDashPattern = [2,1]
+                        dashLineLayer.strokeColor = UIColor.colorWithHexString(color: "dcdcdc").cgColor
+                    }
+                    dashLineLayer.path = path.cgPath
+                    dashLineView.layer.addSublayer(dashLineLayer)
                 }
             }
         }
@@ -277,16 +476,17 @@ class LineChartView: UIView {
         dataView.subviews.forEach { (subview) in
             subview.removeFromSuperview()
         }
-        dataView.frame = CGRect(x: 0, y: 0, width: scrollView.contentSize.width, height: scrollView.bounds.size.height - xAxisViewHeight)
+        dataView.layer.sublayers?.removeAll()
+        dataView.frame = CGRect(x: 0, y: 0, width: scrollView.contentSize.width, height: bgHeight)// scrollView.bounds.size.height - xAxisHeight)
         dataView.backgroundColor = .clear
         scrollView.addSubview(dataView)
-        if touchEnable && !dataArray.isEmpty {
+        if touchEnable && !singleDataArray.isEmpty {
             let tap = UITapGestureRecognizer(target: self, action: #selector(tapAction(_:)))
             dataView.isUserInteractionEnabled = true
             dataView.addGestureRecognizer(tap)
         }
         
-        if dataArray.isEmpty {
+        if singleDataArray.isEmpty {
             return
         }
         
@@ -319,10 +519,22 @@ class LineChartView: UIView {
         
         pointArray.removeAll()
         // 起始点
-        pointArray.append(CGPoint(x: 0, y: dataView.bounds.size.height))
+        var fromZeroY:CGFloat = 0 // 找0刻度线高度
+        if yAxisNums.isEmpty { // 未传入刻度值
+            if minValue >= 0 { // 最小值大于0，则无负轴
+                fromZeroY = bgHeight
+            } else if maxValue <= 0 { // 最大值小于0，则无正轴
+                fromZeroY = yAxisTopMagin
+            } else {
+                fromZeroY = (bgHeight - xAxisHeight) / 2 + yAxisTopMagin
+            }
+        } else { // 传入刻度值
+            fromZeroY = zeroY
+        }
+        pointArray.append(CGPoint(x: 0, y: fromZeroY))
         
         var groupTitle = ""
-        for i in 0..<dataArray.count {
+        for (i, _) in singleDataNumberArray.enumerated() {
             if groupTitle == dataNameArray[i] { // x轴标题去重（相邻重复的不显示）
                 continue
             }
@@ -337,41 +549,89 @@ class LineChartView: UIView {
             groupTitleLabel.textAlignment = .center
             groupTitleLabel.text = dataNameArray[i]
             groupTitleLabel.sizeToFit()
-            groupTitleLabel.center = CGPoint(x: groupWidth * CGFloat(i) + groupWidth / 2, y: xAxisViewHeight - groupTitleLabel.bounds.size.height / 2)
+            groupTitleLabel.center = CGPoint(x: groupWidth * CGFloat(i) + groupWidth / 2, y: xAxisHeight - groupTitleLabel.bounds.size.height / 2)
             xAxisView.addSubview(groupTitleLabel)
             groupTitle = dataNameArray[i]
         }
         
         // 具体数据
-        for i in 0..<dataArray.count {
-            let num = dataArray[i]
-            let heigh = (dataView.bounds.size.height - yAxisViewTopMargin) * CGFloat(Float(num)!)
-            let pointHeight = dataView.bounds.size.height - heigh / CGFloat(maxNum)
-            if isSmooth { // 是否为平滑曲线
-                pointArray.append(CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: pointHeight))
+        for (i,num) in singleDataNumberArray.enumerated() {
+//            let heigh = (dataView.bounds.size.height - yAxisViewTopMargin) * CGFloat(Float(num)!)
+            var pointHeight:CGFloat = 0
+            var dataPoint = CGPoint(x: 0, y: 0)
+            if yAxisNums.isEmpty { // 未传入刻度值
+                if minValue >= 0 { // 最小值大于0，则无负轴
+                    pointHeight = (bgHeight - xAxisHeight) * CGFloat(num / maxNum)
+                    dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: bgHeight - pointHeight)
+                } else if maxValue <= 0 { // 最大值小于0，则无正轴
+                    pointHeight = (bgHeight - xAxisHeight) * CGFloat(num / minNum)
+                    dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: pointHeight + xAxisHeight)
+                } else {
+                    if num > 0 { // 正
+                        pointHeight = (bgHeight - xAxisHeight) / 2 * CGFloat(num / maxNum)
+                        dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: (bgHeight - xAxisHeight) / 2 + yAxisTopMagin - pointHeight)
+                    } else { // 负
+                        pointHeight = (bgHeight - xAxisHeight) / 2 * CGFloat(num / minNum)
+                        dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: (bgHeight - xAxisHeight) / 2 + yAxisTopMagin + pointHeight)
+                    }
+                }
+            } else { // 传入刻度值
+                if num > 0 { // 正
+                    pointHeight = (zeroY - xAxisHeight) * CGFloat(num / maxNum)
+                    dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: zeroY - pointHeight)
+                } else {
+                    pointHeight = (bgHeight - zeroY) * CGFloat(num / minNum)
+                    dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: zeroY + pointHeight)
+                }
+            }
+            
+            // 是否加粗数据点
+            if showBlodPoint {
+                let pointLayer = CALayer()
+                pointLayer.frame = CGRect(x: dataPoint.x - (lineWidth + 2) / 2, y: dataPoint.y - (lineWidth + 2) / 2, width: lineWidth + 2, height: lineWidth + 2)
+                pointLayer.backgroundColor = UIColor.colorWithHexString(color: lineColor.first!).cgColor
+                pointLayer.cornerRadius = (lineWidth + 2) / 2
+                dataView.layer.addSublayer(pointLayer)
+            }
+            
+            // 是否为平滑曲线
+            if isSmooth {
+                pointArray.append(dataPoint)
             } else {
+                var fromZeroY:CGFloat = 0 // 找0刻度线高度
+                if yAxisNums.isEmpty { // 未传入刻度值
+                    if minValue >= 0 { // 最小值大于0，则无负轴
+                        fromZeroY = bgHeight
+                    } else if maxValue <= 0 { // 最大值小于0，则无正轴
+                        fromZeroY = yAxisTopMagin
+                    } else {
+                        fromZeroY = (bgHeight - xAxisHeight) / 2 + yAxisTopMagin
+                    }
+                } else { // 传入刻度值
+                    fromZeroY = zeroY
+                }
                 if i == 0 {
                     if isFillWithColor {
-                        dataPath.move(to: CGPoint(x: groupWidth / 2, y: dataView.bounds.size.height))
-                        dataPath.addLine(to: CGPoint(x: groupWidth / 2, y: pointHeight))
+                        dataPath.move(to: CGPoint(x: groupWidth / 2, y: fromZeroY))
+                        dataPath.addLine(to: dataPoint)
                         if isDrawLineWhenFillColor {
-                            linePath.move(to: CGPoint(x: groupWidth / 2, y: pointHeight))
+                            linePath.move(to: dataPoint)
                         }
                     } else {
-                        dataPath.move(to: CGPoint(x: groupWidth / 2, y: pointHeight))
+                        dataPath.move(to: dataPoint)
                     }
-                } else if i == dataArray.count - 1 {
-                    dataPath.addLine(to: CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: pointHeight))
+                } else if i == singleDataArray.count - 1 {
+                    dataPath.addLine(to: dataPoint)
                     if isFillWithColor {
-                        dataPath.addLine(to: CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: dataView.bounds.size.height))
+                        dataPath.addLine(to: CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: fromZeroY))
                         if isDrawLineWhenFillColor {
-                            linePath.addLine(to: CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: pointHeight))
+                            linePath.addLine(to: dataPoint)
                         }
                     }
                 } else {
-                    dataPath.addLine(to: CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: pointHeight))
+                    dataPath.addLine(to: dataPoint)
                     if isDrawLineWhenFillColor {
-                        linePath.addLine(to: CGPoint(x: groupWidth / 2, y: pointHeight))
+                        linePath.addLine(to: dataPoint)
                     }
                 }
             }
@@ -379,15 +639,27 @@ class LineChartView: UIView {
         
         // 平滑曲线轨迹
         if isSmooth {
-            pointArray.append(CGPoint(x: dataView.bounds.size.width, y: dataView.bounds.size.height))
-            for i in 0..<dataArray.count - 1 {
+            var fromZeroY:CGFloat = 0 // 找0刻度线高度
+            if yAxisNums.isEmpty { // 未传入刻度值
+                if minValue >= 0 { // 最小值大于0，则无负轴
+                    fromZeroY = bgHeight
+                } else if maxValue <= 0 { // 最大值小于0，则无正轴
+                    fromZeroY = yAxisTopMagin
+                } else {
+                    fromZeroY = (bgHeight - xAxisHeight) / 2 + yAxisTopMagin
+                }
+            } else { // 传入刻度值
+                fromZeroY = zeroY
+            }
+            pointArray.append(CGPoint(x: dataView.bounds.size.width, y: fromZeroY))
+            for i in 0..<singleDataArray.count - 1 {
                 let p1 = pointArray[i]
                 let p2 = pointArray[i+1]
                 let p3 = pointArray[i+2]
                 let p4 = pointArray[i+3]
                 if i == 0 {
                     if isFillWithColor {
-                        dataPath.move(to: CGPoint(x: groupWidth / 2, y: dataView.bounds.size.height))
+                        dataPath.move(to: CGPoint(x: groupWidth / 2, y: fromZeroY))
                         dataPath.addLine(to: p2)
                         if isDrawLineWhenFillColor {
                             linePath.move(to: p2)
@@ -402,7 +674,7 @@ class LineChartView: UIView {
                 }
             }
             if isFillWithColor {
-                dataPath.addLine(to: CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(dataArray.count - 1), y: dataView.bounds.size.height))
+                dataPath.addLine(to: CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(singleDataArray.count - 1), y: fromZeroY))
             }
         }
         
@@ -410,7 +682,7 @@ class LineChartView: UIView {
         dataLayer.path = dataPath.cgPath
         if isFillWithColor {
             dataLayer.strokeColor = nil
-            dataLayer.fillColor = UIColor.colorWithHexString(color: fillColor).cgColor
+            dataLayer.fillColor = UIColor.colorWithHexString(color: fillColor, alpha: fillAlpha).cgColor
         } else {
             dataLayer.strokeColor = UIColor.colorWithHexString(color: lineColor.first!).cgColor
             dataLayer.fillColor = nil
@@ -427,16 +699,35 @@ class LineChartView: UIView {
             dataView.layer .addSublayer(lineDataLayer)
         }
         
-        if showDataLabel { // 显示具体数值
-            for (i, num) in dataArray.enumerated() {
-                let heigh = (dataView.bounds.size.height - yAxisViewTopMargin) * CGFloat(Float(num)!)
-                let pointHeight = dataView.bounds.size.height - heigh / CGFloat(maxNum)
+        // 显示具体数值
+        if showDataLabel {
+            for (i, num) in singleDataNumberArray.enumerated() {
+                var labelCenterY:CGFloat = 0
+                if yAxisNums.isEmpty { // 未传入刻度值
+                    if minValue >= 0 { // 最小值大于0，则无负轴
+                        labelCenterY = bgHeight - (bgHeight - xAxisHeight) * CGFloat(num / maxNum) - 8
+                    } else if maxValue <= 0 { // 最大值小于0，则无正轴
+                        labelCenterY = (bgHeight - xAxisHeight) * CGFloat(num / minNum) + xAxisHeight + 8
+                    } else {
+                        if num > 0 { // 正
+                            labelCenterY = (bgHeight - xAxisHeight) / 2 + yAxisTopMagin - (bgHeight - xAxisHeight) / 2 * CGFloat(num / maxNum) - 8
+                        } else { // 负
+                            labelCenterY = (bgHeight - xAxisHeight) / 2 + yAxisTopMagin + (bgHeight - xAxisHeight) / 2 * CGFloat(num / minNum) + 8
+                        }
+                    }
+                } else { // 传入刻度值
+                    if num > 0 { // 正
+                        labelCenterY = zeroY - (zeroY - xAxisHeight) * CGFloat(num / maxNum) - 8
+                    } else {
+                        labelCenterY = zeroY + (bgHeight - zeroY) * CGFloat(num / minNum) + 8
+                    }
+                }
                 let dataLabel = UILabel(frame: CGRect(x: 0, y: 0, width: groupWidth, height: 16))
-                dataLabel.center = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: pointHeight - 8)
+                dataLabel.center = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: labelCenterY)
                 dataLabel.font = UIFont.systemFont(ofSize: dataLabelFont)
                 dataLabel.textColor = UIColor.colorWithHexString(color: "404040")
                 dataLabel.textAlignment = .center
-                dataLabel.text = num
+                dataLabel.text = singleDataArray[i]//String(format: "%.f", num)
                 dataView.addSubview(dataLabel)
             }
         }
@@ -453,16 +744,477 @@ class LineChartView: UIView {
     }
     
     private func resetMultiLine() {
-        
-    }
-    
-    // MARK: - resetData
-    func resetData() {
-        if isSingleLine {
-            resetSingleLine()
-        } else {
-            resetMultiLine()
+        // y轴设置
+        for subview in yAxisView.subviews {
+            subview.removeFromSuperview()
         }
+        let lineView = UIView(frame: CGRect(x: yAxisWidth - 1, y: 0, width: 1, height: yAxisHeight - xAxisHeight))
+        lineView.backgroundColor = UIColor.colorWithHexString(color: "898989")
+        yAxisView.addSubview(lineView)
+        
+        multiDataNumberArray.removeAll()
+        var allNumArray = [Float]()
+        for arrar in multiDataArray {
+            var arr = [Float]()
+            for num in arrar {
+                arr.append(Float(num) ?? 0.0)
+                allNumArray.append(Float(num) ?? 0.0)
+            }
+            multiDataNumberArray.append(arr)
+        }
+        
+        var maxValue:Float = 0 // 数组最大值
+        var minValue:Float = 0 // 数组最小值
+        var maxNum:Float = 0 // y刻度最大值
+        var minNum:Float = 0 // y刻度最小值
+        var str = ""
+        var level:Int = 1
+        var temp = 0
+        var zeroY:CGFloat = 0 // 用于传入刻度值时，记录0的高度
+        
+        maxValue = allNumArray.max() ?? 0 // 寻找数组中最大值
+        minValue = allNumArray.min() ?? 0 // 寻找数组中最小值
+        
+        if yAxisNums.isEmpty { // 未传入刻度值，则自动计算
+            if minValue >= 0 { // 最小值大于0，则无负轴
+                maxNum = approximateRoundNumber("\(maxValue)")
+                minNum = 0
+                str = String(String(format: "%f", maxNum).prefix(1)) // 获取最大刻度字符的第一位
+                str = str == "0" ? "1" : str
+                level = (Int(maxNum) ) / Int(str)! // 数量级 整十或整百或整千等
+            } else if maxValue <= 0 { // 最大值小于0，则无正轴
+                maxNum = 0
+                minNum = -approximateRoundNumber("\(-minValue)")
+                str = String(String(format: "%f", -minNum).prefix(1)) // 获取最大刻度字符的第一位
+                str = str == "0" ? "1" : str
+                level = (Int(minNum) ) / Int(str)! // 数量级 整十或整百或整千等
+            } else { // 最大值大于0，最小值小于0，则正负轴都有
+                maxNum = approximateRoundNumber("\(maxValue)")
+                minNum = -approximateRoundNumber("\(-minValue)")
+                let absMax = [maxNum, -minNum].max() ?? 0
+                maxNum = absMax
+                minNum = -absMax
+                str = String(String(format: "%f", absMax).prefix(1)) // 获取最大刻度字符的第一位
+                str = str == "0" ? "1" : str
+                level = (Int(absMax) ) / Int(str)! // 数量级 整十或整百或整千等
+            }
+            
+            if minValue >= 0 { // 最小值大于0，则无负轴
+                for i in 0..<Int(str)! {
+                    let lblY = yAxisHeight - xAxisHeight - 8 - CGFloat(i) * lineView.bounds.size.height / CGFloat(Int(str)!)
+                    let lblYAxisNum = UILabel(frame: CGRect(x: 0, y: lblY, width: yAxisWidth - 1, height: 16))
+                    lblYAxisNum.font = UIFont.systemFont(ofSize: 8)
+                    lblYAxisNum.textColor = UIColor.colorWithHexString(color: "898989")
+                    lblYAxisNum.textAlignment = .center
+                    lblYAxisNum.text = "\(i * level)"
+                    yAxisView.addSubview(lblYAxisNum)
+                }
+                if !multiDataArray.isEmpty {
+                    let lblMax = UILabel(frame: CGRect(x: 0, y: -8, width: yAxisWidth - 1, height: 16))
+                    lblMax.font = UIFont.systemFont(ofSize: 8)
+                    lblMax.textColor = UIColor.colorWithHexString(color: "898989")
+                    lblMax.textAlignment = .center
+                    lblMax.text = String(format: "%.f", maxNum)
+                    yAxisView.addSubview(lblMax)
+                }
+            } else if maxValue <= 0 { // 最大值小于0，则无正轴
+                for i in 0 ..< Int(str)! {
+                    let lblY = -8 + CGFloat(i) * lineView.bounds.size.height / CGFloat(Int(str)!)
+                    let lblYAxisNum = UILabel(frame: CGRect(x: 0, y: lblY, width: yAxisWidth - 1, height: 16))
+                    lblYAxisNum.font = UIFont.systemFont(ofSize: 8)
+                    lblYAxisNum.textColor = UIColor.colorWithHexString(color: "898989")
+                    lblYAxisNum.textAlignment = .center
+                    lblYAxisNum.text = "\(i * level)"
+                    yAxisView.addSubview(lblYAxisNum)
+                }
+                if !multiDataArray.isEmpty {
+                    let lblMin = UILabel(frame: CGRect(x: 0, y: lineView.bounds.size.height - 8, width: yAxisWidth - 1, height: 16))
+                    lblMin.font = UIFont.systemFont(ofSize: 8)
+                    lblMin.textColor = UIColor.colorWithHexString(color: "898989")
+                    lblMin.textAlignment = .center
+                    lblMin.text = String(format: "%.f", minNum)
+                    yAxisView.addSubview(lblMin)
+                    
+                }
+            } else { // 最大值大于0，最小值小于0，则正负轴都有
+                temp = Int(str)!
+                for i in 0 ..< Int(str)! * 2 {
+                    let lblY = yAxisHeight - xAxisHeight - 8 - CGFloat(i) * lineView.bounds.size.height / CGFloat(Int(str)! * 2)
+                    let lblYAxisNum = UILabel(frame: CGRect(x: 0, y: lblY, width: yAxisWidth - 1, height: 16))
+                    lblYAxisNum.font = UIFont.systemFont(ofSize: 8)
+                    lblYAxisNum.textColor = UIColor.colorWithHexString(color: "898989")
+                    lblYAxisNum.textAlignment = .center
+                    lblYAxisNum.text = "\((i - temp) * level)"
+                    yAxisView.addSubview(lblYAxisNum)
+                }
+                if !multiDataArray.isEmpty {
+                    let lblMax = UILabel(frame: CGRect(x: 0, y: -8, width: yAxisWidth - 1, height: 16))
+                    lblMax.font = UIFont.systemFont(ofSize: 8)
+                    lblMax.textColor = UIColor.colorWithHexString(color: "898989")
+                    lblMax.textAlignment = .center
+                    let absMax = [maxNum, -minNum].max() ?? 0
+                    lblMax.text = String(format: "%.f", absMax)
+                    yAxisView.addSubview(lblMax)
+                }
+            }
+        } else { // 传入刻度值
+            var yAxisNumArray = [Float]()
+            for num in yAxisNums {
+                yAxisNumArray.append(Float(num) ?? 0.0)
+            }
+            maxNum = yAxisNumArray.max() ?? 0 // 寻找数组中最大值
+            minNum = yAxisNumArray.min() ?? 0 // 寻找数组中最小值
+            
+            for i in 0..<yAxisNums.count {
+                let labelHeight:CGFloat = 16
+                let labelY = CGFloat(i) * (lineView.bounds.size.height / CGFloat(yAxisNums.count - 1))
+                let lblY = yAxisView.bounds.size.height - xAxisHeight - labelHeight / 2 - labelY
+                let lblYAxisNum = UILabel(frame: CGRect(x: 0, y: lblY, width: yAxisWidth - 1, height: labelHeight))
+                lblYAxisNum.font = UIFont.systemFont(ofSize: yAxisTitleFont)
+                lblYAxisNum.textColor = UIColor.colorWithHexString(color: "898989")
+                lblYAxisNum.textAlignment = .center
+                lblYAxisNum.text = yAxisNums[i]
+                yAxisView.addSubview(lblYAxisNum)
+                if Int(yAxisNums[yAxisNums.count - i - 1]) == 0 {
+                    zeroY = yAxisTopMagin + CGFloat(i) * (lineView.bounds.size.height / CGFloat(yAxisNums.count - 1))
+                }
+            }
+        }
+        
+        // 确定滚动内容大小和组宽度
+        if scrollEnabled {
+            if dataNameArray.count <= 5 {
+                groupWidth = bgWidth / CGFloat(dataNameArray.count)
+                scrollView.contentSize = CGSize(width: bgWidth, height: 0)
+                xAxisView.frame = CGRect(x: 0, y: bgHeight, width: bgWidth, height: xAxisHeight)
+            } else {
+                groupWidth = bgWidth / 5
+                scrollView.contentSize = CGSize(width: groupWidth * CGFloat(dataNameArray.count), height: 0)
+                xAxisView.frame = CGRect(x: 0, y: bgHeight, width: groupWidth * CGFloat(dataNameArray.count), height: xAxisHeight)
+            }
+        } else {
+            groupWidth = bgWidth / CGFloat(dataNameArray.count)
+            scrollView.contentSize = CGSize(width: bgWidth, height: 0)
+            xAxisView.frame = CGRect(x: 0, y: bgHeight, width: bgWidth, height: xAxisHeight)
+        }
+        xAxisWidth = xAxisView.bounds.size.width
+        
+        // 移除xAxisView子视图
+        for subview in xAxisView.subviews {
+            subview.removeFromSuperview()
+        }
+        
+        let xLineView = UIView(frame: CGRect(x: 0, y: 0, width: xAxisWidth, height: 1))
+        xLineView.backgroundColor = UIColor.colorWithHexString(color: "898989")
+        xAxisView.addSubview(xLineView)
+        
+        // 移除scrollView子视图
+        for subview in scrollView.subviews {
+            if subview != xAxisView {
+                subview.removeFromSuperview()
+            }
+        }
+        
+        // 水平虚线
+        if showDataHorizontalLine {
+            if yAxisNums.isEmpty { // 未传入刻度值
+                if minValue >= 0 { // 最小值大于0，则无负轴
+                    for i in 0 ..< Int(str)! {
+                        let lineY = yAxisTopMagin + CGFloat(i) * (lineView.bounds.size.height / CGFloat(Int(str)!))
+                        let dashLineView = UIView(frame: CGRect(x: 0, y: lineY, width: xAxisWidth, height: 1))
+                        scrollView.addSubview(dashLineView)
+                        let path = UIBezierPath()
+                        path.move(to: CGPoint(x: 0, y: dashLineView.bounds.size.height / 2))
+                        path.addLine(to: CGPoint(x: dashLineView.bounds.size.width, y: dashLineView.bounds.size.height / 2))
+                        let dashLineLayer = CAShapeLayer()
+                        dashLineLayer.bounds = dashLineView.bounds
+                        dashLineLayer.position = CGPoint(x: dashLineView.bounds.size.width / 2, y: dashLineView.bounds.size.height / 2)
+                        dashLineLayer.lineWidth = 0.5
+                        dashLineLayer.lineDashPattern = [2,1]
+                        dashLineLayer.strokeColor = UIColor.colorWithHexString(color: "dcdcdc").cgColor
+                        dashLineLayer.path = path.cgPath
+                        dashLineView.layer.addSublayer(dashLineLayer)
+                    }
+                } else if maxValue <= 0 { // 最大值小于0，则无正轴
+                    for i in 0 ..< Int(str)! {
+                        let lineY = yAxisTopMagin + CGFloat(i) * (lineView.bounds.size.height / CGFloat(Int(str)!))
+                        let dashLineView = UIView(frame: CGRect(x: 0, y: lineY, width: xAxisWidth, height: 1))
+                        scrollView.addSubview(dashLineView)
+                        let path = UIBezierPath()
+                        path.move(to: CGPoint(x: 0, y: dashLineView.bounds.size.height / 2))
+                        path.addLine(to: CGPoint(x: dashLineView.bounds.size.width, y: dashLineView.bounds.size.height / 2))
+                        let dashLineLayer = CAShapeLayer()
+                        dashLineLayer.bounds = dashLineView.bounds
+                        dashLineLayer.position = CGPoint(x: dashLineView.bounds.size.width / 2, y: dashLineView.bounds.size.height / 2)
+                        if i == 0 {
+                            dashLineLayer.lineWidth = 1
+                            dashLineLayer.strokeColor = UIColor.colorWithHexString(color: "898989").cgColor
+                        } else {
+                            dashLineLayer.lineWidth = 0.5
+                            dashLineLayer.lineDashPattern = [2,1]
+                            dashLineLayer.strokeColor = UIColor.colorWithHexString(color: "dcdcdc").cgColor
+                        }
+                        dashLineLayer.path = path.cgPath
+                        dashLineView.layer.addSublayer(dashLineLayer)
+                    }
+                } else {
+                    for i in 0 ..< Int(str)! * 2 {
+                        let lineY = yAxisTopMagin + CGFloat(i) * (lineView.bounds.size.height / CGFloat(Int(str)! * 2))
+                        let dashLineView = UIView(frame: CGRect(x: 0, y: lineY, width: xAxisWidth, height: 1))
+                        scrollView.addSubview(dashLineView)
+                        let path = UIBezierPath()
+                        path.move(to: CGPoint(x: 0, y: dashLineView.bounds.size.height / 2))
+                        path.addLine(to: CGPoint(x: dashLineView.bounds.size.width, y: dashLineView.bounds.size.height / 2))
+                        let dashLineLayer = CAShapeLayer()
+                        dashLineLayer.bounds = dashLineView.bounds
+                        dashLineLayer.position = CGPoint(x: dashLineView.bounds.size.width / 2, y: dashLineView.bounds.size.height / 2)
+                        if i == temp {
+                            dashLineLayer.lineWidth = 1
+                            dashLineLayer.strokeColor = UIColor.colorWithHexString(color: "898989").cgColor
+                        } else {
+                            dashLineLayer.lineWidth = 0.5
+                            dashLineLayer.lineDashPattern = [2,1]
+                            dashLineLayer.strokeColor = UIColor.colorWithHexString(color: "dcdcdc").cgColor
+                        }
+                        dashLineLayer.path = path.cgPath
+                        dashLineView.layer.addSublayer(dashLineLayer)
+                    }
+                }
+            } else { // 传入刻度值
+                for i in 0..<yAxisNums.count - 1 {
+                    let lineY = yAxisTopMagin + CGFloat(i) * (lineView.bounds.size.height / CGFloat(yAxisNums.count - 1))
+                    let dashLineView = UIView(frame: CGRect(x: 0, y: lineY, width: xAxisWidth, height: 1))
+                    scrollView.addSubview(dashLineView)
+                    let path = UIBezierPath()
+                    path.move(to: CGPoint(x: 0, y: dashLineView.bounds.size.height / 2))
+                    path.addLine(to: CGPoint(x: dashLineView.bounds.size.width, y: dashLineView.bounds.size.height / 2))
+                    let dashLineLayer = CAShapeLayer()
+                    dashLineLayer.bounds = dashLineView.bounds
+                    dashLineLayer.position = CGPoint(x: dashLineView.bounds.size.width / 2, y: dashLineView.bounds.size.height / 2)
+                    if Int(yAxisNums[yAxisNums.count - i - 1]) == 0 {
+                        dashLineLayer.lineWidth = 1
+                        dashLineLayer.strokeColor = UIColor.colorWithHexString(color: "898989").cgColor
+                    } else {
+                        dashLineLayer.lineWidth = 0.5
+                        dashLineLayer.lineDashPattern = [2,1]
+                        dashLineLayer.strokeColor = UIColor.colorWithHexString(color: "dcdcdc").cgColor
+                    }
+                    dashLineLayer.path = path.cgPath
+                    dashLineView.layer.addSublayer(dashLineLayer)
+                }
+            }
+        }
+        
+        // dataView
+        dataView.removeFromSuperview()
+        dataView.subviews.forEach { (subview) in
+            subview.removeFromSuperview()
+        }
+        dataView.layer.sublayers?.removeAll()
+        dataView.frame = CGRect(x: 0, y: 0, width: scrollView.contentSize.width, height: bgHeight)// scrollView.bounds.size.height - xAxisHeight)
+        dataView.backgroundColor = .clear
+        scrollView.addSubview(dataView)
+        
+        if touchEnable && !multiDataArray.isEmpty {
+            let tap = UITapGestureRecognizer(target: self, action: #selector(tapAction(_:)))
+            dataView.isUserInteractionEnabled = true
+            dataView.addGestureRecognizer(tap)
+        }
+        
+        if multiDataArray.isEmpty {
+            return
+        }
+        
+        // 背景layer(动画)
+        let bgPath = UIBezierPath()
+        bgPath.move(to: CGPoint(x: 0, y: bgHeight / 2))
+        bgPath.addLine(to: CGPoint(x: dataView.bounds.size.width, y: dataView.bounds.size.height / 2))
+        bgPath.lineWidth = bgHeight
+        let bgLayer = CAShapeLayer()
+        bgLayer.fillColor = UIColor.clear.cgColor
+        bgLayer.strokeColor = UIColor.lightGray.cgColor
+        bgLayer.strokeStart = 0
+        bgLayer.strokeEnd = 1
+        bgLayer.zPosition = 1
+        bgLayer.lineWidth = bgHeight
+        bgLayer.path = bgPath.cgPath
+        dataView.layer.mask = bgLayer
+        
+        // x轴组标题
+        var groupTitle = ""
+        for (i, str) in dataNameArray.enumerated() {
+            if groupTitle == str { // x轴标题去重（相邻重复的不显示）
+                continue
+            }
+            let groupCenterLineView = UIView(frame: CGRect(x: groupWidth * CGFloat(i) + groupWidth / 2 - 0.5, y: 1, width: 1, height: 5))
+            groupCenterLineView.backgroundColor = UIColor.colorWithHexString(color: "898989")
+            xAxisView.addSubview(groupCenterLineView)
+            
+            // 分组标题
+            let groupTitleLabel = UILabel()
+            groupTitleLabel.font = UIFont.systemFont(ofSize: xAxisTitleFont)
+            groupTitleLabel.textColor = UIColor.colorWithHexString(color: "898989")
+            groupTitleLabel.textAlignment = .center
+            groupTitleLabel.text = str
+            groupTitleLabel.sizeToFit()
+            groupTitleLabel.center = CGPoint(x: groupWidth * CGFloat(i) + groupWidth / 2, y: xAxisHeight - groupTitleLabel.bounds.size.height / 2)
+            xAxisView.addSubview(groupTitleLabel)
+            
+            groupTitle = str
+        }
+        
+        // 具体数据
+        for (i, array) in multiDataNumberArray.enumerated() {
+            let dataPath = UIBezierPath()
+            dataPath.lineWidth = lineWidth
+            UIColor.colorWithHexString(color: lineColor.first!).setStroke()
+            UIColor.colorWithHexString(color: lineColor.first!).setFill()
+            dataPath.stroke()
+            dataPath.fill()
+            
+            var arr = [CGPoint]()
+            // 起始点
+            var fromZeroY:CGFloat = 0 // 找0刻度线高度
+            if yAxisNums.isEmpty { // 未传入刻度值
+                if minValue >= 0 { // 最小值大于0，则无负轴
+                    fromZeroY = bgHeight
+                } else if maxValue <= 0 { // 最大值小于0，则无正轴
+                    fromZeroY = yAxisTopMagin
+                } else {
+                    fromZeroY = (bgHeight - xAxisHeight) / 2 + yAxisTopMagin
+                }
+            } else { // 传入刻度值
+                fromZeroY = zeroY
+            }
+            arr.append(CGPoint(x: 0, y: fromZeroY))
+            
+            for (j, num) in array.enumerated() {
+                var pointHeight:CGFloat = 0
+                var dataPoint = CGPoint(x: 0, y: 0)
+                if yAxisNums.isEmpty { // 未传入刻度值
+                    if minValue >= 0 { // 最小值大于0，则无负轴
+                        pointHeight = (bgHeight - xAxisHeight) * CGFloat(num / maxNum)
+                        dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(j), y: bgHeight - pointHeight)
+                    } else if maxValue <= 0 { // 最大值小于0，则无正轴
+                        pointHeight = (bgHeight - xAxisHeight) * CGFloat(num / minNum)
+                        dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(j), y: pointHeight + xAxisHeight)
+                    } else {
+                        if num > 0 { // 正
+                            pointHeight = (bgHeight - xAxisHeight) / 2 * CGFloat(num / maxNum)
+                            dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(j), y: (bgHeight - xAxisHeight) / 2 + yAxisTopMagin - pointHeight)
+                        } else { // 负
+                            pointHeight = (bgHeight - xAxisHeight) / 2 * CGFloat(num / minNum)
+                            dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(j), y: (bgHeight - xAxisHeight) / 2 + yAxisTopMagin + pointHeight)
+                        }
+                    }
+                } else { // 传入刻度值
+                    if num > 0 { // 正
+                        pointHeight = (zeroY - xAxisHeight) * CGFloat(num / maxNum)
+                        dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(j), y: zeroY - pointHeight)
+                    } else {
+                        pointHeight = (bgHeight - zeroY) * CGFloat(num / minNum)
+                        dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(j), y: zeroY + pointHeight)
+                    }
+                }
+                
+                // 是否加粗数据点
+                if showBlodPoint {
+                    let pointLayer = CALayer()
+                    pointLayer.frame = CGRect(x: dataPoint.x - (lineWidth + 2) / 2, y: dataPoint.y - (lineWidth + 2) / 2, width: lineWidth + 2, height: lineWidth + 2)
+                    pointLayer.backgroundColor = UIColor.colorWithHexString(color: lineColor[i]).cgColor
+                    pointLayer.cornerRadius = (lineWidth + 2) / 2
+                    dataView.layer.addSublayer(pointLayer)
+                }
+                
+                // 是否为平滑曲线
+                if isSmooth {
+                    arr.append(dataPoint)
+                } else {
+                    if j == 0 {
+                        dataPath.move(to: dataPoint)
+                    } else {
+                        dataPath.addLine(to: dataPoint)
+                    }
+                }
+            }
+            
+            // 平滑曲线轨迹
+            if isSmooth {
+                var fromZeroY:CGFloat = 0 // 找0刻度线高度
+                if yAxisNums.isEmpty { // 未传入刻度值
+                    if minValue >= 0 { // 最小值大于0，则无负轴
+                        fromZeroY = bgHeight
+                    } else if maxValue <= 0 { // 最大值小于0，则无正轴
+                        fromZeroY = yAxisTopMagin
+                    } else {
+                        fromZeroY = (bgHeight - xAxisHeight) / 2 + yAxisTopMagin
+                    }
+                } else { // 传入刻度值
+                    fromZeroY = zeroY
+                }
+                arr.append(CGPoint(x: dataView.bounds.size.width, y: fromZeroY))
+                for k in 0..<array.count - 1 {
+                    let p1 = arr[k]
+                    let p2 = arr[k+1]
+                    let p3 = arr[k+2]
+                    let p4 = arr[k+3]
+                    if k == 0 {
+                        dataPath.move(to: p2)
+                    }
+                    getControlPoint(dataPath, point: p1.x, y0: p1.y, x1: p2.x, y1: p2.y, x2: p3.x, y2: p3.y, x3: p4.x, y3: p4.y)
+                }
+            }
+            
+            let dataLayer = CAShapeLayer()
+            dataLayer.path = dataPath.cgPath
+            dataLayer.strokeColor = UIColor.colorWithHexString(color: lineColor[i]).cgColor
+            dataLayer.fillColor = nil
+            dataLayer.lineWidth = lineWidth
+            dataView.layer.addSublayer(dataLayer)
+            
+            // 显示具体数值
+            if showDataLabel {
+                for (l, num) in array.enumerated() {
+                    var labelCenterY:CGFloat = 0
+                    if yAxisNums.isEmpty { // 未传入刻度值
+                        if minValue >= 0 { // 最小值大于0，则无负轴
+                            labelCenterY = bgHeight - (bgHeight - xAxisHeight) * CGFloat(num / maxNum) - 8
+                        } else if maxValue <= 0 { // 最大值小于0，则无正轴
+                            labelCenterY = (bgHeight - xAxisHeight) * CGFloat(num / minNum) + xAxisHeight + 8
+                        } else {
+                            if num > 0 { // 正
+                                labelCenterY = (bgHeight - xAxisHeight) / 2 + yAxisTopMagin - (bgHeight - xAxisHeight) / 2 * CGFloat(num / maxNum) - 8
+                            } else { // 负
+                                labelCenterY = (bgHeight - xAxisHeight) / 2 + yAxisTopMagin + (bgHeight - xAxisHeight) / 2 * CGFloat(num / minNum) + 8
+                            }
+                        }
+                    } else { // 传入刻度值
+                        if num > 0 { // 正
+                            labelCenterY = zeroY - (zeroY - xAxisHeight) * CGFloat(num / maxNum) - 8
+                        } else {
+                            labelCenterY = zeroY + (bgHeight - zeroY) * CGFloat(num / minNum) + 8
+                        }
+                    }
+                    let dataLabel = UILabel(frame: CGRect(x: 0, y: 0, width: groupWidth, height: 16))
+                    dataLabel.center = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(l), y: labelCenterY)
+                    dataLabel.font = UIFont.systemFont(ofSize: dataLabelFont)
+                    dataLabel.textColor = UIColor.colorWithHexString(color: lineColor[i])//"404040")
+                    dataLabel.textAlignment = .center
+                    dataLabel.text = multiDataArray[i][l]//String(format: "%.f", num)
+                    dataView.addSubview(dataLabel)
+                }
+            }
+        }
+        
+        // 动画
+        let strokeAnimation = CABasicAnimation(keyPath: "strokeEnd")
+        strokeAnimation.fromValue = 0
+        strokeAnimation.toValue = 1
+        strokeAnimation.duration = 1.0
+        strokeAnimation.repeatCount = 1
+        strokeAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        strokeAnimation.isRemovedOnCompletion = true
+        bgLayer.add(strokeAnimation, forKey: "lineAnimation")
     }
     
     // MARK: - tapAction

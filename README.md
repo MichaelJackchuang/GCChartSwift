@@ -23,7 +23,11 @@
 ![](img/radar_5.gif) ![](img/radar_6.gif)
 
 5. 折线图<br>
-        暂时未完成<br>
+![](img/line_1.png) ![](img/line_2.png)
+![](img/line_3.png) ![](img/line_4.png)
+![](img/line_5.png) ![](img/line_6.png)
+![](img/line_7.gif) ![](img/line_8.gif)
+![](img/line_9.gif)
 
 ## 实现过程
 实现思路可以参考OC版<br>

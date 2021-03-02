@@ -14,6 +14,7 @@ class LineViewController: BaseViewController {
     @IBOutlet weak var line1: LineChartView!
     @IBOutlet weak var line2: LineChartView!
     @IBOutlet weak var line3: LineChartView!
+    @IBOutlet weak var line4: LineChartView!
     
     var isBtnClicked:Bool = false
     
@@ -68,6 +69,19 @@ class LineViewController: BaseViewController {
         line3.multiDataArray = [["-100","-137","-215","-258","-65","-78","-47"],
                                 ["150","187","115","78","165","108","17"]]
         line3.resetData()
+        
+        line4.isSingleLine = true
+        line4.showDataHorizontalLine = true
+        line4.lineWidth = 1
+        line4.showDataLabel = true
+        line4.showBlodPoint = true
+        line4.lineColor = ["00cd00"]
+        line4.fillColor = "00cd00"
+        line4.isGradientFillColor = true
+        line4.isDrawLineWhenFillColor = true
+        line4.dataNameArray = ["一工区","二工区","三工区","项目部","一大队","二中队","三小队"]
+        line4.singleDataArray = ["100","137","215","258","65","78","47"]
+        line4.resetData()
     }
     
     @objc func btnAction() {
@@ -84,6 +98,10 @@ class LineViewController: BaseViewController {
             
             line3.multiDataArray = [["-100","-137","-215","-258","-65","-78","-47"],
                                     ["150","187","115","78","165","108","17"]]
+            
+            line4.isSmooth = true
+            line4.singleDataArray = ["100","137","215","258","-65","-78","47"]
+            line4.yAxisNums = []
         } else {
             line1.isSmooth = true
             line1.lineColor = ["308ff7"]
@@ -99,10 +117,15 @@ class LineViewController: BaseViewController {
             
             line3.multiDataArray = [["0.1","0.13","0.6","0.36","0.5","0.2","0.8"],
                                     ["-0.1","-0.13","0.6","0.36","-0.5","-0.2","0.8"]]
+            
+            line4.isSmooth = true
+            line4.singleDataArray = ["-100","137","-215","-258","65","78","47"]
+            line4.yAxisNums = ["-300","-200","-100","0","100","200"]
         }
         line1.resetData()
         line2.resetData()
         line3.resetData()
+        line4.resetData()
         
         isBtnClicked = !isBtnClicked
     }

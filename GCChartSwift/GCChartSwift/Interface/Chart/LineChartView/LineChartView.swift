@@ -52,13 +52,16 @@ class LineChartView: UIView {
     var isFillWithColor = false
     
     /// 线条下部填充颜色
-    var fillColor = ""
+    var fillColor = "f9856c"
     
     /// 线条下部填充颜色透明度
     var fillAlpha:CGFloat = 0
     
     /// 折线是否用颜色描线（在填充线条下部区域时，是否用加深的颜色描线）
     var isDrawLineWhenFillColor = false
+    
+    /// 单线条下部填充颜色是否渐变
+    var isGradientFillColor:Bool = false
     
     /// 是否允许点击事件
     var touchEnable = false
@@ -618,11 +621,25 @@ extension LineChartView {
                             linePath.move(to: dataPoint)
                         }
                     } else {
-                        dataPath.move(to: dataPoint)
+                        if isGradientFillColor {
+                            dataPath.move(to: CGPoint(x: groupWidth / 2, y: fromZeroY))
+                            dataPath.addLine(to: dataPoint)
+                            if isDrawLineWhenFillColor {
+                                linePath.move(to: dataPoint)
+                            }
+                        } else {
+                            dataPath.move(to: dataPoint)
+                        }
                     }
                 } else if i == singleDataArray.count - 1 {
                     dataPath.addLine(to: dataPoint)
                     if isFillWithColor {
+                        dataPath.addLine(to: CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: fromZeroY))
+                        if isDrawLineWhenFillColor {
+                            linePath.addLine(to: dataPoint)
+                        }
+                    }
+                    if isGradientFillColor {
                         dataPath.addLine(to: CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: fromZeroY))
                         if isDrawLineWhenFillColor {
                             linePath.addLine(to: dataPoint)
@@ -665,7 +682,15 @@ extension LineChartView {
                             linePath.move(to: p2)
                         }
                     } else {
-                        dataPath.move(to: p2)
+                        if isGradientFillColor {
+                            dataPath.move(to: CGPoint(x: groupWidth / 2, y: fromZeroY))
+                            dataPath.addLine(to: p2)
+                            if isDrawLineWhenFillColor {
+                                linePath.move(to: p2)
+                            }
+                        } else {
+                            dataPath.move(to: p2)
+                        }
                     }
                 }
                 getControlPoint(dataPath, point: p1.x, y0: p1.y, x1: p2.x, y1: p2.y, x2: p3.x, y2: p3.y, x3: p4.x, y3: p4.y)
@@ -676,19 +701,128 @@ extension LineChartView {
             if isFillWithColor {
                 dataPath.addLine(to: CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(singleDataArray.count - 1), y: fromZeroY))
             }
+            if isGradientFillColor {
+                dataPath.addLine(to: CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(singleDataArray.count - 1), y: fromZeroY))
+            }
         }
         
-        let dataLayer = CAShapeLayer()
-        dataLayer.path = dataPath.cgPath
-        if isFillWithColor {
-            dataLayer.strokeColor = nil
-            dataLayer.fillColor = UIColor.colorWithHexString(color: fillColor, alpha: fillAlpha).cgColor
-        } else {
+        // 渐变填充色
+        if isGradientFillColor {
+            let gradientBgLayer = CALayer()
+            if minValue >= 0 { // 最小值大于0，则无负轴
+                let gradientLayer = CAGradientLayer()
+                gradientLayer.frame = CGRect(x: 0, y: yAxisTopMagin, width: dataView.bounds.size.width, height: dataView.bounds.size.height - yAxisTopMagin)
+                gradientLayer.colors = [UIColor.colorWithHexString(color: fillColor, alpha: 0.8).cgColor,
+                                        UIColor.colorWithHexString(color: fillColor, alpha: 0.0).cgColor]
+                gradientLayer.locations = [0,1]
+                gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+                gradientLayer.endPoint = CGPoint(x: 0, y: 1)
+                gradientBgLayer.addSublayer(gradientLayer)
+            } else if maxValue <= 0 { // 最大值小于0，则无正轴
+                let gradientLayer = CAGradientLayer()
+                gradientLayer.frame = CGRect(x: 0, y: yAxisTopMagin, width: dataView.bounds.size.width, height: dataView.bounds.size.height - yAxisTopMagin)
+                gradientLayer.colors = [UIColor.colorWithHexString(color: fillColor, alpha: 0.8).cgColor,
+                                        UIColor.colorWithHexString(color: fillColor, alpha: 0.0).cgColor]
+                gradientLayer.locations = [0,1]
+                gradientLayer.startPoint = CGPoint(x: 0, y: 1)
+                gradientLayer.endPoint = CGPoint(x: 0, y: 0)
+                gradientBgLayer.addSublayer(gradientLayer)
+            } else {
+                if yAxisNums.isEmpty { // 未传入刻度值
+                    let gradient1 = CAGradientLayer()
+                    gradient1.frame = CGRect(x: 0, y: yAxisTopMagin, width: dataView.bounds.size.width, height: (dataView.bounds.size.height - yAxisTopMagin) / 2)
+                    gradient1.colors = [UIColor.colorWithHexString(color: fillColor, alpha: 0.8).cgColor,
+                                            UIColor.colorWithHexString(color: fillColor, alpha: 0.0).cgColor]
+                    gradient1.locations = [0,1]
+                    gradient1.startPoint = CGPoint(x: 0, y: 0)
+                    gradient1.endPoint = CGPoint(x: 0, y: 1)
+                    gradientBgLayer.addSublayer(gradient1)
+                    
+                    let gradient2 = CAGradientLayer()
+                    gradient2.frame = CGRect(x: 0, y: yAxisTopMagin + (dataView.bounds.size.height - yAxisTopMagin) / 2, width: dataView.bounds.size.width, height: (dataView.bounds.size.height - yAxisTopMagin) / 2)
+                    gradient2.colors = [UIColor.colorWithHexString(color: fillColor, alpha: 0.8).cgColor,
+                                            UIColor.colorWithHexString(color: fillColor, alpha: 0.0).cgColor]
+                    gradient2.locations = [0,1]
+                    gradient2.startPoint = CGPoint(x: 0, y: 1)
+                    gradient2.endPoint = CGPoint(x: 0, y: 0)
+                    gradientBgLayer.addSublayer(gradient2)
+                } else { // 传入刻度值
+                    if zeroY <= yAxisTopMagin { // 0刻度在最上边 没有正轴
+                        let gradientLayer = CAGradientLayer()
+                        gradientLayer.frame = CGRect(x: 0, y: yAxisTopMagin, width: dataView.bounds.size.width, height: dataView.bounds.size.height - yAxisTopMagin)
+                        gradientLayer.colors = [UIColor.colorWithHexString(color: fillColor, alpha: 0.8).cgColor,
+                                                UIColor.colorWithHexString(color: fillColor, alpha: 0.0).cgColor]
+                        gradientLayer.locations = [0,1]
+                        gradientLayer.startPoint = CGPoint(x: 0, y: 1)
+                        gradientLayer.endPoint = CGPoint(x: 0, y: 0)
+                        gradientBgLayer.addSublayer(gradientLayer)
+                    } else if zeroY >= dataView.bounds.size.height { // 0刻度在最下边 没有负轴
+                        let gradientLayer = CAGradientLayer()
+                        gradientLayer.frame = CGRect(x: 0, y: yAxisTopMagin, width: dataView.bounds.size.width, height: dataView.bounds.size.height - yAxisTopMagin)
+                        gradientLayer.colors = [UIColor.colorWithHexString(color: fillColor, alpha: 0.8).cgColor,
+                                                UIColor.colorWithHexString(color: fillColor, alpha: 0.0).cgColor]
+                        gradientLayer.locations = [0,1]
+                        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+                        gradientLayer.endPoint = CGPoint(x: 0, y: 1)
+                        gradientBgLayer.addSublayer(gradientLayer)
+                    } else { // 正负轴都有
+                        let gradient1 = CAGradientLayer()
+                        gradient1.frame = CGRect(x: 0, y: yAxisTopMagin, width: dataView.bounds.size.width, height: zeroY - yAxisTopMagin)
+                        gradient1.colors = [UIColor.colorWithHexString(color: fillColor, alpha: 0.8).cgColor,
+                                                UIColor.colorWithHexString(color: fillColor, alpha: 0.0).cgColor]
+                        gradient1.locations = [0,1]
+                        gradient1.startPoint = CGPoint(x: 0, y: 0)
+                        gradient1.endPoint = CGPoint(x: 0, y: 1)
+                        gradientBgLayer.addSublayer(gradient1)
+                        
+                        let gradient2 = CAGradientLayer()
+                        gradient2.frame = CGRect(x: 0, y: zeroY, width: dataView.bounds.size.width, height: dataView.bounds.size.height - zeroY)
+                        gradient2.colors = [UIColor.colorWithHexString(color: fillColor, alpha: 0.8).cgColor,
+                                                UIColor.colorWithHexString(color: fillColor, alpha: 0.0).cgColor]
+                        gradient2.locations = [0,1]
+                        gradient2.startPoint = CGPoint(x: 0, y: 1)
+                        gradient2.endPoint = CGPoint(x: 0, y: 0)
+                        gradientBgLayer.addSublayer(gradient2)
+                    }
+                }
+            }
+            
+            let dataLayer = CAShapeLayer()
+            dataLayer.path = dataPath.cgPath
             dataLayer.strokeColor = UIColor.colorWithHexString(color: lineColor.first!).cgColor
-            dataLayer.fillColor = nil
+            dataLayer.fillColor = UIColor.colorWithHexString(color: fillColor, alpha: fillAlpha).cgColor
+//            dataLayer.lineWidth = lineWidth
+//            dataView.layer.addSublayer(dataLayer)
+            
+            gradientBgLayer.mask = dataLayer
+            
+            dataView.layer.addSublayer(gradientBgLayer)
+            
+        } else { // 无渐变色时
+            let dataLayer = CAShapeLayer()
+            dataLayer.path = dataPath.cgPath
+            if isFillWithColor {
+                dataLayer.strokeColor = nil
+                dataLayer.fillColor = UIColor.colorWithHexString(color: fillColor, alpha: fillAlpha).cgColor
+            } else {
+                dataLayer.strokeColor = UIColor.colorWithHexString(color: lineColor.first!).cgColor
+                dataLayer.fillColor = nil
+            }
+            dataLayer.lineWidth = lineWidth
+            dataView.layer.addSublayer(dataLayer)
         }
-        dataLayer.lineWidth = lineWidth
-        dataView.layer.addSublayer(dataLayer)
+        
+//        let dataLayer = CAShapeLayer()
+//        dataLayer.path = dataPath.cgPath
+//        if isFillWithColor {
+//            dataLayer.strokeColor = nil
+//            dataLayer.fillColor = UIColor.colorWithHexString(color: fillColor, alpha: fillAlpha).cgColor
+//        } else {
+//            dataLayer.strokeColor = UIColor.colorWithHexString(color: lineColor.first!).cgColor
+//            dataLayer.fillColor = nil
+//        }
+//        dataLayer.lineWidth = lineWidth
+//        dataView.layer.addSublayer(dataLayer)
         
         if isDrawLineWhenFillColor { // 底部填充颜色时数据画线
             let lineDataLayer = CAShapeLayer()

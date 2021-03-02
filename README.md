@@ -27,7 +27,8 @@
 ![](img/line_3.png) ![](img/line_4.png)
 ![](img/line_5.png) ![](img/line_6.png)
 ![](img/line_7.gif) ![](img/line_8.gif)
-![](img/line_9.gif)
+![](img/line_9.gif) ![](img/line_10.png)
+![](img/line_11.png)
 
 ## 实现过程
 实现思路可以参考OC版<br>
@@ -167,3 +168,6 @@ enum GCRadarChartViewAnimationStyle {
 * <font color=#ff0000 size=5>重要！！！约束布局使用了SnapKit，请提前在项目中集成，若不想集成则手动添加约束，或者获取屏幕宽度来进行相关计算，设置固定视图大小。</font><br>
 
 另：OC版本地址：<https://github.com/MichaelJackchuang/GCChart>
+
+## 更新
+2021.03.02 折线图单线条添加渐变填充色，并新增isGradientFillColor属性用以控制

@@ -158,9 +158,47 @@ enum GCRadarChartViewAnimationStyle {
 ```
 ## 三、折/曲线图
 折线图是最复杂的，稍后再加上来<br>
-<!-- ### 设置参数
+### 设置参数
 ```Swift
-``` -->
+/// 数据标签数组（x轴分组标题）
+    var dataNameArray = [String]()
+    /// 单线条数据数组
+    var singleDataArray = [String]()
+    /// 多线条数据数组（二维数组）(每个元素表示一条线)
+    var multiDataArray = [[String]]()
+    /// y轴刻度值，递增，设置此数组则不自动计算y轴刻度值，传入刻度时必须包含0
+    var yAxisNums = [String]()
+    /// 是否显示数据水平线
+    var showDataHorizontalLine:Bool = false
+    /// 是否可以滚动 一般来说可以不用设置这个属性 当数据超过5组时可以滚动
+    var scrollEnabled = true
+    /// 顶点是否显示具体数据
+    var showDataLabel = false
+    /// 数据点是否加粗
+    var showBlodPoint = false
+    /// 折线线宽
+    var lineWidth:CGFloat = 0
+    /// 是否为平滑曲线
+    var isSmooth = false
+    /// 是否为单条线
+    var isSingleLine = true
+    /// 线条颜色
+    var lineColor = [String]()
+    /// 折线下部是否用颜色填充（仅单线条时此属性生效，且此属性设置为yes时线条颜色设置失效）
+    var isFillWithColor = false
+    /// 线条下部填充颜色
+    var fillColor = "f9856c"
+    /// 线条下部填充颜色透明度
+    var fillAlpha:CGFloat = 0
+    /// 折线是否用颜色描线（在填充线条下部区域时，是否用加深的颜色描线）
+    var isDrawLineWhenFillColor = false
+    /// 单线条下部填充颜色是否渐变
+    var isGradientFillColor:Bool = false
+    /// 是否允许点击事件
+    var touchEnable = false
+    /// 点击事件回调（字典中传递数据，索引等信息）（待完成）
+    var tapBlock:(([String : Any]) -> Void)?
+```
 
 ##  Tip
 * 由于在内部重写了awakeFromNib方法，所以可以在xib上直接使用，拖一个空白view，将其class改为你要的图表的类名，在代码里设置属性就可以了。<br>

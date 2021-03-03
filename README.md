@@ -157,10 +157,9 @@ enum GCRadarChartViewAnimationStyle {
 }
 ```
 ## 三、折/曲线图
-折线图是最复杂的，稍后再加上来<br>
 ### 设置参数
 ```Swift
-/// 数据标签数组（x轴分组标题）
+    /// 数据标签数组（x轴分组标题）
     var dataNameArray = [String]()
     /// 单线条数据数组
     var singleDataArray = [String]()

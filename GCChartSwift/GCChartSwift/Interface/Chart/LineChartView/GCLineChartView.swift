@@ -1,5 +1,5 @@
 //
-//  LineChartView.swift
+//  GCLineChartView.swift
 //  DemosInSwift
 //
 //  Created by 古创 on 2020/8/27.
@@ -8,7 +8,7 @@
 
 import UIKit
 
-class LineChartView: UIView {
+class GCLineChartView: UIView {
 
     // MARK: -  parameter
     
@@ -155,7 +155,7 @@ class LineChartView: UIView {
 }
 
 // MARK: - config
-extension LineChartView {
+extension GCLineChartView {
     func config() {
         lineWidth = 2
         if lineColor.isEmpty {
@@ -205,7 +205,7 @@ extension LineChartView {
 }
 
 // MARK: - resetLine
-extension LineChartView {
+extension GCLineChartView {
     // 单线
     private func resetSingleLine() {
         // y轴设置
@@ -1409,6 +1409,6 @@ extension LineChartView {
 }
 
 // MARK: - UIScrollViewDelegate
-extension LineChartView: UIScrollViewDelegate {
+extension GCLineChartView: UIScrollViewDelegate {
     
 }

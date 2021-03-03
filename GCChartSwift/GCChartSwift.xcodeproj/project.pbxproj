@@ -62,7 +62,7 @@
 		3D7BB79F25CF7BD40087F903 /* LineViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3D7BB78A25CF7BD40087F903 /* LineViewController.xib */; };
 		3D7BB7A025CF7BD40087F903 /* GCChartMainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7BB78B25CF7BD40087F903 /* GCChartMainViewController.swift */; };
 		3D7BB7A125CF7BD40087F903 /* ColumnChartFullScreenViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3D7BB78C25CF7BD40087F903 /* ColumnChartFullScreenViewController.xib */; };
-		3D7BB7A225CF7BD40087F903 /* LineChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7BB78E25CF7BD40087F903 /* LineChartView.swift */; };
+		3D7BB7A225CF7BD40087F903 /* GCLineChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7BB78E25CF7BD40087F903 /* GCLineChartView.swift */; };
 		3D7BB7A325CF7BD40087F903 /* RadarChartViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7BB78F25CF7BD40087F903 /* RadarChartViewController.swift */; };
 		3D7BB7A425CF7BD40087F903 /* CircleRingChartViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3D7BB79025CF7BD40087F903 /* CircleRingChartViewController.xib */; };
 		3D7BB7A525CF7BD40087F903 /* GCPieChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7BB79225CF7BD40087F903 /* GCPieChartView.swift */; };
@@ -131,7 +131,7 @@
 		3D7BB78A25CF7BD40087F903 /* LineViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = LineViewController.xib; sourceTree = "<group>"; };
 		3D7BB78B25CF7BD40087F903 /* GCChartMainViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GCChartMainViewController.swift; sourceTree = "<group>"; };
 		3D7BB78C25CF7BD40087F903 /* ColumnChartFullScreenViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ColumnChartFullScreenViewController.xib; sourceTree = "<group>"; };
-		3D7BB78E25CF7BD40087F903 /* LineChartView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LineChartView.swift; sourceTree = "<group>"; };
+		3D7BB78E25CF7BD40087F903 /* GCLineChartView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GCLineChartView.swift; sourceTree = "<group>"; };
 		3D7BB78F25CF7BD40087F903 /* RadarChartViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RadarChartViewController.swift; sourceTree = "<group>"; };
 		3D7BB79025CF7BD40087F903 /* CircleRingChartViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = CircleRingChartViewController.xib; sourceTree = "<group>"; };
 		3D7BB79225CF7BD40087F903 /* GCPieChartView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GCPieChartView.swift; sourceTree = "<group>"; };
@@ -323,7 +323,7 @@
 		3D7BB78D25CF7BD40087F903 /* LineChartView */ = {
 			isa = PBXGroup;
 			children = (
-				3D7BB78E25CF7BD40087F903 /* LineChartView.swift */,
+				3D7BB78E25CF7BD40087F903 /* GCLineChartView.swift */,
 			);
 			path = LineChartView;
 			sourceTree = "<group>";
@@ -443,7 +443,7 @@
 				3D7BB77325CF7A410087F903 /* LayoutConstraint.swift in Sources */,
 				3D7BB79B25CF7BD40087F903 /* GCColumnChartView.swift in Sources */,
 				3D7BB76725CF7A410087F903 /* Typealiases.swift in Sources */,
-				3D7BB7A225CF7BD40087F903 /* LineChartView.swift in Sources */,
+				3D7BB7A225CF7BD40087F903 /* GCLineChartView.swift in Sources */,
 				3D7BB76E25CF7A410087F903 /* ConstraintView+Extensions.swift in Sources */,
 				3D7BB75E25CF7A410087F903 /* ConstraintMakerExtendable.swift in Sources */,
 				3D7BB7B525CF895E0087F903 /* BaseViewController.swift in Sources */,

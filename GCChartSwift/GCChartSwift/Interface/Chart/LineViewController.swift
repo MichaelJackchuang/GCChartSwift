@@ -10,11 +10,11 @@ import UIKit
 
 class LineViewController: BaseViewController {
     
-//    var line1:LineChartView!
-    @IBOutlet weak var line1: LineChartView!
-    @IBOutlet weak var line2: LineChartView!
-    @IBOutlet weak var line3: LineChartView!
-    @IBOutlet weak var line4: LineChartView!
+//    var line1:GCLineChartView!
+    @IBOutlet weak var line1: GCLineChartView!
+    @IBOutlet weak var line2: GCLineChartView!
+    @IBOutlet weak var line3: GCLineChartView!
+    @IBOutlet weak var line4: GCLineChartView!
     
     var isBtnClicked:Bool = false
     

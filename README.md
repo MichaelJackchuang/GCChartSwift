@@ -208,4 +208,5 @@ enum GCRadarChartViewAnimationStyle {
 另：OC版本地址：<https://github.com/MichaelJackchuang/GCChart>
 
 ## 更新
-2021.03.02 折线图单线条添加渐变填充色，并新增isGradientFillColor属性用以控制
+2021.03.02 折线图单线条添加渐变填充色，并新增isGradientFillColor属性用以控制<br>
+2021.04.13 折线图添加GCLineChartFlushView类，起点从0点开始，与GCLineChatView用法完全一致

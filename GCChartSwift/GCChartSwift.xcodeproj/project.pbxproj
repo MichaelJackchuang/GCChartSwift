@@ -71,6 +71,7 @@
 		3D7BB7A825CF7BD40087F903 /* LineViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7BB79625CF7BD40087F903 /* LineViewController.swift */; };
 		3D7BB7AC25CF7F000087F903 /* UIViewController+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7BB7AB25CF7F000087F903 /* UIViewController+Extension.swift */; };
 		3D7BB7B525CF895E0087F903 /* BaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7BB7B425CF895E0087F903 /* BaseViewController.swift */; };
+		3DF01EBA2625480700C43CF3 /* GCLineChartFlushView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF01EB92625480700C43CF3 /* GCLineChartFlushView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -140,6 +141,8 @@
 		3D7BB79625CF7BD40087F903 /* LineViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LineViewController.swift; sourceTree = "<group>"; };
 		3D7BB7AB25CF7F000087F903 /* UIViewController+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIViewController+Extension.swift"; sourceTree = "<group>"; };
 		3D7BB7B425CF895E0087F903 /* BaseViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseViewController.swift; sourceTree = "<group>"; };
+		3DA7F87A260B3D8B00E53FCA /* GCChartSwift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GCChartSwift.entitlements; sourceTree = "<group>"; };
+		3DF01EB92625480700C43CF3 /* GCLineChartFlushView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GCLineChartFlushView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -172,6 +175,7 @@
 		3D7BB70A25CF77640087F903 /* GCChartSwift */ = {
 			isa = PBXGroup;
 			children = (
+				3DA7F87A260B3D8B00E53FCA /* GCChartSwift.entitlements */,
 				3D7BB72225CF78200087F903 /* AppDelegate */,
 				3D7BB72425CF797C0087F903 /* Interface */,
 				3D7BB72625CF79970087F903 /* Vendor */,
@@ -324,6 +328,7 @@
 			isa = PBXGroup;
 			children = (
 				3D7BB78E25CF7BD40087F903 /* GCLineChartView.swift */,
+				3DF01EB92625480700C43CF3 /* GCLineChartFlushView.swift */,
 			);
 			path = LineChartView;
 			sourceTree = "<group>";
@@ -435,6 +440,7 @@
 				3D7BB7A625CF7BD40087F903 /* GCCircleRingChartView.swift in Sources */,
 				3D7BB75825CF7A410087F903 /* ConstraintAttributes.swift in Sources */,
 				3D7BB76B25CF7A410087F903 /* ConstraintMaker.swift in Sources */,
+				3DF01EBA2625480700C43CF3 /* GCLineChartFlushView.swift in Sources */,
 				3D7BB75425CF7A410087F903 /* ConstraintMultiplierTarget.swift in Sources */,
 				3D7BB77125CF7A410087F903 /* Debugging.swift in Sources */,
 				3D7BB7A525CF7BD40087F903 /* GCPieChartView.swift in Sources */,
@@ -630,7 +636,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = GCChartSwift/GCChartSwift.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = C5N2R2LJ84;
 				INFOPLIST_FILE = GCChartSwift/SupportingFiles/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -638,6 +646,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = gu.GCChartSwift;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -648,7 +657,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = GCChartSwift/GCChartSwift.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = C5N2R2LJ84;
 				INFOPLIST_FILE = GCChartSwift/SupportingFiles/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -656,6 +667,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = gu.GCChartSwift;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

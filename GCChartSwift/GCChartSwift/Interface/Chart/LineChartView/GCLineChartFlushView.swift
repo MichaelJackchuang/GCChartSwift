@@ -1,5 +1,5 @@
 //
-//  GCLineChartView.swift
+//  GCLineChartFlushView.swift
 //  DemosInSwift
 //
 //  Created by 古创 on 2020/8/27.
@@ -8,7 +8,8 @@
 
 import UIKit
 
-class GCLineChartView: UIView {
+// 起点从0点开始的折线图
+class GCLineChartFlushView: UIView {
 
     // MARK: -  parameter
     
@@ -155,7 +156,7 @@ class GCLineChartView: UIView {
 }
 
 // MARK: - config
-extension GCLineChartView {
+extension GCLineChartFlushView {
     func config() {
         lineWidth = 2
         if lineColor.isEmpty {
@@ -205,7 +206,7 @@ extension GCLineChartView {
 }
 
 // MARK: - resetLine
-extension GCLineChartView {
+extension GCLineChartFlushView {
     // 单线
     private func resetSingleLine() {
         // y轴设置
@@ -351,16 +352,16 @@ extension GCLineChartView {
         // 确定滚动内容大小和组宽度
         if scrollEnabled {
             if singleDataArray.count <= 5 {
-                groupWidth = bgWidth / CGFloat(singleDataArray.count)
+                groupWidth = bgWidth / CGFloat(singleDataArray.count - 1)
                 scrollView.contentSize = CGSize(width: bgWidth, height: 0)
                 xAxisView.frame = CGRect(x: 0, y: bgHeight, width: bgWidth, height: xAxisHeight)
             } else {
-                groupWidth = bgWidth / 5
-                scrollView.contentSize = CGSize(width: groupWidth * CGFloat(singleDataArray.count), height: 0)
-                xAxisView.frame = CGRect(x: 0, y: bgHeight, width: groupWidth * CGFloat(singleDataArray.count), height: xAxisHeight)
+                groupWidth = bgWidth / 4
+                scrollView.contentSize = CGSize(width: groupWidth * CGFloat(singleDataArray.count - 1), height: 0)
+                xAxisView.frame = CGRect(x: 0, y: bgHeight, width: groupWidth * CGFloat(singleDataArray.count - 1), height: xAxisHeight)
             }
         } else {
-            groupWidth = bgWidth / CGFloat(singleDataArray.count)
+            groupWidth = bgWidth / CGFloat(singleDataArray.count - 1)
             scrollView.contentSize = CGSize(width: bgWidth, height: 0)
             xAxisView.frame = CGRect(x: 0, y: bgHeight, width: bgWidth, height: xAxisHeight)
         }
@@ -541,7 +542,7 @@ extension GCLineChartView {
             if groupTitle == dataNameArray[i] { // x轴标题去重（相邻重复的不显示）
                 continue
             }
-            let groupCenterLineView = UIView(frame: CGRect(x: groupWidth * CGFloat(i) + groupWidth / 2 - 0.5, y: 1, width: 1, height: 5))
+            let groupCenterLineView = UIView(frame: CGRect(x: groupWidth * CGFloat(i) - 0.5, y: 1, width: 1, height: 5))
             groupCenterLineView.backgroundColor = UIColor.colorWithHexString(color: "898989")
             xAxisView.addSubview(groupCenterLineView)
             
@@ -552,7 +553,13 @@ extension GCLineChartView {
             groupTitleLabel.textAlignment = .center
             groupTitleLabel.text = dataNameArray[i]
             groupTitleLabel.sizeToFit()
-            groupTitleLabel.center = CGPoint(x: groupWidth * CGFloat(i) + groupWidth / 2, y: xAxisHeight - groupTitleLabel.bounds.size.height / 2)
+            groupTitleLabel.center = CGPoint(x: groupWidth * CGFloat(i), y: xAxisHeight - groupTitleLabel.bounds.size.height / 2)
+            if i == 0 {
+                groupTitleLabel.frame.origin = CGPoint(x: 0, y: xAxisHeight - groupTitleLabel.bounds.size.height)
+            }
+            if i == singleDataNumberArray.count - 1 {
+                groupTitleLabel.center = CGPoint(x: groupWidth * CGFloat(i) - groupTitleLabel.bounds.size.width / 2, y: xAxisHeight - groupTitleLabel.bounds.size.height / 2)
+            }
             xAxisView.addSubview(groupTitleLabel)
             groupTitle = dataNameArray[i]
         }
@@ -565,26 +572,26 @@ extension GCLineChartView {
             if yAxisNums.isEmpty { // 未传入刻度值
                 if minValue >= 0 { // 最小值大于0，则无负轴
                     pointHeight = (bgHeight - xAxisHeight) * CGFloat(num / maxNum)
-                    dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: bgHeight - pointHeight)
+                    dataPoint = CGPoint(x: groupWidth * CGFloat(i), y: bgHeight - pointHeight)
                 } else if maxValue <= 0 { // 最大值小于0，则无正轴
                     pointHeight = (bgHeight - xAxisHeight) * CGFloat(num / minNum)
-                    dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: pointHeight + xAxisHeight)
+                    dataPoint = CGPoint(x: groupWidth * CGFloat(i), y: pointHeight + xAxisHeight)
                 } else {
                     if num > 0 { // 正
                         pointHeight = (bgHeight - xAxisHeight) / 2 * CGFloat(num / maxNum)
-                        dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: (bgHeight - xAxisHeight) / 2 + yAxisTopMagin - pointHeight)
+                        dataPoint = CGPoint(x: groupWidth * CGFloat(i), y: (bgHeight - xAxisHeight) / 2 + yAxisTopMagin - pointHeight)
                     } else { // 负
                         pointHeight = (bgHeight - xAxisHeight) / 2 * CGFloat(num / minNum)
-                        dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: (bgHeight - xAxisHeight) / 2 + yAxisTopMagin + pointHeight)
+                        dataPoint = CGPoint(x: groupWidth * CGFloat(i), y: (bgHeight - xAxisHeight) / 2 + yAxisTopMagin + pointHeight)
                     }
                 }
             } else { // 传入刻度值
                 if num > 0 { // 正
                     pointHeight = (zeroY - xAxisHeight) * CGFloat(num / maxNum)
-                    dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: zeroY - pointHeight)
+                    dataPoint = CGPoint(x: groupWidth * CGFloat(i), y: zeroY - pointHeight)
                 } else {
                     pointHeight = (bgHeight - zeroY) * CGFloat(num / minNum)
-                    dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: zeroY + pointHeight)
+                    dataPoint = CGPoint(x: groupWidth * CGFloat(i), y: zeroY + pointHeight)
                 }
             }
             
@@ -615,14 +622,14 @@ extension GCLineChartView {
                 }
                 if i == 0 {
                     if isFillWithColor {
-                        dataPath.move(to: CGPoint(x: groupWidth / 2, y: fromZeroY))
+                        dataPath.move(to: CGPoint(x: 0, y: fromZeroY))
                         dataPath.addLine(to: dataPoint)
                         if isDrawLineWhenFillColor {
                             linePath.move(to: dataPoint)
                         }
                     } else {
                         if isGradientFillColor {
-                            dataPath.move(to: CGPoint(x: groupWidth / 2, y: fromZeroY))
+                            dataPath.move(to: CGPoint(x: 0, y: fromZeroY))
                             dataPath.addLine(to: dataPoint)
                             if isDrawLineWhenFillColor {
                                 linePath.move(to: dataPoint)
@@ -634,13 +641,13 @@ extension GCLineChartView {
                 } else if i == singleDataArray.count - 1 {
                     dataPath.addLine(to: dataPoint)
                     if isFillWithColor {
-                        dataPath.addLine(to: CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: fromZeroY))
+                        dataPath.addLine(to: CGPoint(x: groupWidth * CGFloat(i), y: fromZeroY))
                         if isDrawLineWhenFillColor {
                             linePath.addLine(to: dataPoint)
                         }
                     }
                     if isGradientFillColor {
-                        dataPath.addLine(to: CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: fromZeroY))
+                        dataPath.addLine(to: CGPoint(x: groupWidth * CGFloat(i), y: fromZeroY))
                         if isDrawLineWhenFillColor {
                             linePath.addLine(to: dataPoint)
                         }
@@ -676,14 +683,14 @@ extension GCLineChartView {
                 let p4 = pointArray[i+3]
                 if i == 0 {
                     if isFillWithColor {
-                        dataPath.move(to: CGPoint(x: groupWidth / 2, y: fromZeroY))
+                        dataPath.move(to: CGPoint(x: 0, y: fromZeroY))
                         dataPath.addLine(to: p2)
                         if isDrawLineWhenFillColor {
                             linePath.move(to: p2)
                         }
                     } else {
                         if isGradientFillColor {
-                            dataPath.move(to: CGPoint(x: groupWidth / 2, y: fromZeroY))
+                            dataPath.move(to: CGPoint(x: 0, y: fromZeroY))
                             dataPath.addLine(to: p2)
                             if isDrawLineWhenFillColor {
                                 linePath.move(to: p2)
@@ -699,10 +706,10 @@ extension GCLineChartView {
                 }
             }
             if isFillWithColor {
-                dataPath.addLine(to: CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(singleDataArray.count - 1), y: fromZeroY))
+                dataPath.addLine(to: CGPoint(x: groupWidth * CGFloat(singleDataArray.count - 1), y: fromZeroY))
             }
             if isGradientFillColor {
-                dataPath.addLine(to: CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(singleDataArray.count - 1), y: fromZeroY))
+                dataPath.addLine(to: CGPoint(x: groupWidth * CGFloat(singleDataArray.count - 1), y: fromZeroY))
             }
         }
         
@@ -857,11 +864,19 @@ extension GCLineChartView {
                     }
                 }
                 let dataLabel = UILabel(frame: CGRect(x: 0, y: 0, width: groupWidth, height: 16))
-                dataLabel.center = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(i), y: labelCenterY)
+                dataLabel.center = CGPoint(x: groupWidth * CGFloat(i), y: labelCenterY)
                 dataLabel.font = UIFont.systemFont(ofSize: dataLabelFont)
                 dataLabel.textColor = UIColor.colorWithHexString(color: "404040")
                 dataLabel.textAlignment = .center
                 dataLabel.text = singleDataArray[i]//String(format: "%.f", num)
+                if i == 0 {
+                    dataLabel.sizeToFit()
+                    dataLabel.center = CGPoint(x: dataLabel.bounds.size.width / 2, y: labelCenterY)
+                }
+                if i == singleDataNumberArray.count - 1 {
+                    dataLabel.sizeToFit()
+                    dataLabel.center = CGPoint(x: groupWidth * CGFloat(i) - dataLabel.bounds.size.width / 2, y: labelCenterY)
+                }
                 dataView.addSubview(dataLabel)
             }
         }
@@ -1018,16 +1033,16 @@ extension GCLineChartView {
         // 确定滚动内容大小和组宽度
         if scrollEnabled {
             if dataNameArray.count <= 5 {
-                groupWidth = bgWidth / CGFloat(dataNameArray.count)
+                groupWidth = bgWidth / CGFloat(dataNameArray.count - 1)
                 scrollView.contentSize = CGSize(width: bgWidth, height: 0)
                 xAxisView.frame = CGRect(x: 0, y: bgHeight, width: bgWidth, height: xAxisHeight)
             } else {
-                groupWidth = bgWidth / 5
-                scrollView.contentSize = CGSize(width: groupWidth * CGFloat(dataNameArray.count), height: 0)
-                xAxisView.frame = CGRect(x: 0, y: bgHeight, width: groupWidth * CGFloat(dataNameArray.count), height: xAxisHeight)
+                groupWidth = bgWidth / 4
+                scrollView.contentSize = CGSize(width: groupWidth * CGFloat(dataNameArray.count - 1), height: 0)
+                xAxisView.frame = CGRect(x: 0, y: bgHeight, width: groupWidth * CGFloat(dataNameArray.count - 1), height: xAxisHeight)
             }
         } else {
-            groupWidth = bgWidth / CGFloat(dataNameArray.count)
+            groupWidth = bgWidth / CGFloat(dataNameArray.count - 1)
             scrollView.contentSize = CGSize(width: bgWidth, height: 0)
             xAxisView.frame = CGRect(x: 0, y: bgHeight, width: bgWidth, height: xAxisHeight)
         }
@@ -1180,7 +1195,7 @@ extension GCLineChartView {
             if groupTitle == str { // x轴标题去重（相邻重复的不显示）
                 continue
             }
-            let groupCenterLineView = UIView(frame: CGRect(x: groupWidth * CGFloat(i) + groupWidth / 2 - 0.5, y: 1, width: 1, height: 5))
+            let groupCenterLineView = UIView(frame: CGRect(x: groupWidth * CGFloat(i) - 0.5, y: 1, width: 1, height: 5))
             groupCenterLineView.backgroundColor = UIColor.colorWithHexString(color: "898989")
             xAxisView.addSubview(groupCenterLineView)
             
@@ -1191,7 +1206,13 @@ extension GCLineChartView {
             groupTitleLabel.textAlignment = .center
             groupTitleLabel.text = str
             groupTitleLabel.sizeToFit()
-            groupTitleLabel.center = CGPoint(x: groupWidth * CGFloat(i) + groupWidth / 2, y: xAxisHeight - groupTitleLabel.bounds.size.height / 2)
+            groupTitleLabel.center = CGPoint(x: groupWidth * CGFloat(i), y: xAxisHeight - groupTitleLabel.bounds.size.height / 2)
+            if i == 0 {
+                groupTitleLabel.frame.origin = CGPoint(x: 0, y: xAxisHeight - groupTitleLabel.bounds.size.height)
+            }
+            if i == dataNameArray.count - 1 {
+                groupTitleLabel.center = CGPoint(x: groupWidth * CGFloat(i) - groupTitleLabel.bounds.size.width / 2, y: xAxisHeight - groupTitleLabel.bounds.size.height / 2)
+            }
             xAxisView.addSubview(groupTitleLabel)
             
             groupTitle = str
@@ -1228,26 +1249,26 @@ extension GCLineChartView {
                 if yAxisNums.isEmpty { // 未传入刻度值
                     if minValue >= 0 { // 最小值大于0，则无负轴
                         pointHeight = (bgHeight - xAxisHeight) * CGFloat(num / maxNum)
-                        dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(j), y: bgHeight - pointHeight)
+                        dataPoint = CGPoint(x: groupWidth * CGFloat(j), y: bgHeight - pointHeight)
                     } else if maxValue <= 0 { // 最大值小于0，则无正轴
                         pointHeight = (bgHeight - xAxisHeight) * CGFloat(num / minNum)
-                        dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(j), y: pointHeight + xAxisHeight)
+                        dataPoint = CGPoint(x: groupWidth * CGFloat(j), y: pointHeight + xAxisHeight)
                     } else {
                         if num > 0 { // 正
                             pointHeight = (bgHeight - xAxisHeight) / 2 * CGFloat(num / maxNum)
-                            dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(j), y: (bgHeight - xAxisHeight) / 2 + yAxisTopMagin - pointHeight)
+                            dataPoint = CGPoint(x: groupWidth * CGFloat(j), y: (bgHeight - xAxisHeight) / 2 + yAxisTopMagin - pointHeight)
                         } else { // 负
                             pointHeight = (bgHeight - xAxisHeight) / 2 * CGFloat(num / minNum)
-                            dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(j), y: (bgHeight - xAxisHeight) / 2 + yAxisTopMagin + pointHeight)
+                            dataPoint = CGPoint(x: groupWidth * CGFloat(j), y: (bgHeight - xAxisHeight) / 2 + yAxisTopMagin + pointHeight)
                         }
                     }
                 } else { // 传入刻度值
                     if num > 0 { // 正
                         pointHeight = (zeroY - xAxisHeight) * CGFloat(num / maxNum)
-                        dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(j), y: zeroY - pointHeight)
+                        dataPoint = CGPoint(x: groupWidth * CGFloat(j), y: zeroY - pointHeight)
                     } else {
                         pointHeight = (bgHeight - zeroY) * CGFloat(num / minNum)
-                        dataPoint = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(j), y: zeroY + pointHeight)
+                        dataPoint = CGPoint(x: groupWidth * CGFloat(j), y: zeroY + pointHeight)
                     }
                 }
                 
@@ -1330,11 +1351,19 @@ extension GCLineChartView {
                         }
                     }
                     let dataLabel = UILabel(frame: CGRect(x: 0, y: 0, width: groupWidth, height: 16))
-                    dataLabel.center = CGPoint(x: groupWidth / 2 + groupWidth * CGFloat(l), y: labelCenterY)
+                    dataLabel.center = CGPoint(x: groupWidth * CGFloat(l), y: labelCenterY)
                     dataLabel.font = UIFont.systemFont(ofSize: dataLabelFont)
                     dataLabel.textColor = UIColor.colorWithHexString(color: lineColor[i])//"404040")
                     dataLabel.textAlignment = .center
                     dataLabel.text = multiDataArray[i][l]//String(format: "%.f", num)
+                    if l == 0 {
+                        dataLabel.sizeToFit()
+                        dataLabel.center = CGPoint(x: dataLabel.bounds.size.width / 2, y: labelCenterY)
+                    }
+                    if l == multiDataArray[i].count - 1 {
+                        dataLabel.sizeToFit()
+                        dataLabel.center = CGPoint(x: groupWidth * CGFloat(i) - dataLabel.bounds.size.width / 2, y: labelCenterY)
+                    }
                     dataView.addSubview(dataLabel)
                 }
             }
@@ -1411,6 +1440,6 @@ extension GCLineChartView {
 }
 
 // MARK: - UIScrollViewDelegate
-extension GCLineChartView: UIScrollViewDelegate {
+extension GCLineChartFlushView: UIScrollViewDelegate {
     
 }

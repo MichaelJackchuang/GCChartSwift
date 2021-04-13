@@ -198,6 +198,7 @@ enum GCRadarChartViewAnimationStyle {
     /// 点击事件回调（字典中传递数据，索引等信息）（待完成）
     var tapBlock:(([String : Any]) -> Void)?
 ```
+此外，如果你想折线图的起点是从0点开始的，那么就要使用GCLineChartFlushView来代替GCLineChatView，其用法和GCLineChartView完全一致。
 
 ##  Tip
 * 由于在内部重写了awakeFromNib方法，所以可以在xib上直接使用，拖一个空白view，将其class改为你要的图表的类名，在代码里设置属性就可以了。<br>

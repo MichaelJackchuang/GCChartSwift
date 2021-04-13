@@ -1383,7 +1383,7 @@ extension GCLineChartFlushView {
     // MARK: - tapAction
     @objc func tapAction(_ tap:UITapGestureRecognizer) {
         let point = tap.location(in: dataView)
-        let index = Int(point.x / groupWidth)
+        let index = Int((point.x + groupWidth / 2) / groupWidth)
         debugPrint(index)
     }
     
